@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
@@ -66,13 +66,16 @@ export function DashboardOverview() {
   if (loading) {
     return (
       <div className="grid gap-6">
-        <div className="h-28 animate-pulse rounded-lg bg-white/70" />
+        <div className="h-28 dash-pulse" />
         <div className="grid gap-4 md:grid-cols-4">
           {[0, 1, 2, 3].map((item) => (
-            <div key={item} className="h-32 animate-pulse rounded-lg bg-white/70" />
+            <div key={item} className="h-32 dash-pulse" />
           ))}
         </div>
-        <div className="flex h-60 items-center justify-center gap-3 rounded-lg bg-white/70 text-zinc-400">
+        <div
+          className="flex h-60 items-center justify-center gap-3 rounded-lg dash-card"
+          style={{ color: "var(--dash-muted)" }}
+        >
           <Loader2 className="h-5 w-5 animate-spin" />
           Loading dashboard...
         </div>
@@ -113,23 +116,16 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 rounded-lg border border-zinc-200 bg-[oklch(0.997_0.005_95)] p-6 shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)] lg:grid-cols-[1fr_auto] lg:items-end">
+      <div className="dash-page-header dash-page-header--row grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-            Last 30 days
-          </p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-            Keep the calendar moving.
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-zinc-600">
+          <p className="dash-eyebrow">Last 30 days</p>
+          <h1 className="dash-h1 max-w-3xl">Keep the calendar moving.</h1>
+          <p className="dash-subtitle max-w-2xl">
             Track booked revenue, review the next appointments, and jump into the work that needs
             attention.
           </p>
         </div>
-        <Button
-          asChild
-          className="h-11 rounded-lg bg-zinc-950 px-5 text-[#fbfaf7] hover:bg-zinc-800"
-        >
+        <Button asChild variant="dash" className="h-11 shrink-0 rounded-lg px-5">
           <Link href="/dashboard/services">
             Add services <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -137,29 +133,29 @@ export function DashboardOverview() {
       </div>
 
       {bookingPath && (
-        <div className="grid gap-4 rounded-lg border border-zinc-200 bg-white/85 p-5 shadow-[0_24px_80px_-60px_rgba(39,39,42,0.7)] lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="dash-page-header grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-950">
-              <LinkIcon className="h-4 w-4 text-violet-700" />
+            <div
+              className="mb-2 flex items-center gap-2 text-sm font-semibold"
+              style={{ color: "var(--dash-text)" }}
+            >
+              <LinkIcon className="h-4 w-4" style={{ color: "var(--dash-icon-fg)" }} />
               Booking link
             </div>
-            <p className="text-sm text-zinc-600">
-              Share this with clients or place it in your Instagram bio.
-            </p>
-            <p className="mt-3 truncate rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
+            <p className="dash-subtitle">Share this with clients or place it in your Instagram bio.</p>
+            <p
+              className="dash-inset mt-3 truncate rounded-lg px-3 py-2 text-sm dash-input"
+              style={{ color: "var(--dash-text-secondary)" }}
+            >
               {bookingPath}
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
-            <Button
-              type="button"
-              onClick={copyBookingLink}
-              className="h-10 rounded-lg bg-violet-700 px-4 text-white hover:bg-violet-800"
-            >
+            <Button type="button" variant="dash" onClick={copyBookingLink} className="h-10 rounded-lg px-4">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? "Copied" : "Copy link"}
             </Button>
-            <Button asChild type="button" variant="outline" className="h-10 rounded-lg">
+            <Button asChild type="button" variant="dashOutline" className="h-10 rounded-lg">
               <Link href={bookingPath} target="_blank">
                 Open link <ExternalLink className="h-4 w-4" />
               </Link>
@@ -170,46 +166,48 @@ export function DashboardOverview() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
-          <Card
-            key={s.label}
-            className="border-zinc-200 bg-white/80 shadow-[0_24px_80px_-60px_rgba(39,39,42,0.7)]"
-          >
-            <CardContent className="p-5">
+          <div key={s.label} className="dash-card overflow-hidden">
+            <div className="p-5">
               <div className="mb-5 flex items-center justify-between">
-                <span className="text-sm font-medium text-zinc-500">{s.label}</span>
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+                <span className="text-sm font-medium" style={{ color: "var(--dash-muted)" }}>
+                  {s.label}
+                </span>
+                <span className="dash-icon-circle h-9 w-9">
                   <s.icon className="h-4 w-4" />
                 </span>
               </div>
-              <p className="text-3xl font-semibold tracking-tight text-zinc-950 tabular-nums">
+              <p
+                className="text-3xl font-semibold tracking-tight tabular-nums"
+                style={{ color: "var(--dash-text)" }}
+              >
                 {s.value}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
-      <Card className="overflow-hidden border-zinc-200 bg-[oklch(0.997_0.005_95)] shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)]">
-        <CardHeader className="flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg font-semibold tracking-tight text-zinc-950">
+      <div className="dash-card overflow-hidden">
+        <CardHeader className="flex-row items-center justify-between border-b pb-4" style={{ borderColor: "var(--dash-divider)" }}>
+          <CardTitle className="text-lg font-semibold tracking-tight" style={{ color: "var(--dash-text)" }}>
             Upcoming appointments
           </CardTitle>
-          <Button asChild variant="ghost" size="sm" className="text-xs text-zinc-600">
+          <Button asChild variant="dashGhost" size="sm" className="text-xs">
             <Link href="/dashboard/bookings">
               View all <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Link>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           {analytics.upcoming.length === 0 ? (
-            <div className="rounded-lg bg-zinc-50 px-4 py-10 text-center">
-              <CalendarDays className="mx-auto mb-3 h-8 w-8 text-zinc-300" />
-              <p className="text-sm font-medium text-zinc-600">
+            <div className="dash-empty px-4 py-10">
+              <CalendarDays className="mx-auto mb-3 h-8 w-8 opacity-40" />
+              <p className="text-sm font-medium" style={{ color: "var(--dash-text-secondary)" }}>
                 No upcoming appointments in the next 7 days.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-zinc-100">
+            <div className="dash-divide">
               {analytics.upcoming.map((b) => {
                 const d = new Date(b.starts_at);
                 const dateStr = d.toLocaleDateString("en-US", {
@@ -225,21 +223,25 @@ export function DashboardOverview() {
                 return (
                   <div key={b.id} className="flex items-center justify-between gap-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-sm font-semibold text-violet-800">
+                      <div className="dash-icon-circle h-10 w-10 shrink-0 text-sm font-semibold">
                         {(b.guest_name ?? "?")[0].toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-zinc-950">
+                        <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
                           {b.guest_name ?? "Guest"}
                         </p>
-                        <p className="text-xs text-zinc-500">
+                        <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
                           {b.services?.name ?? "Appointment"}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-zinc-800">{timeStr}</p>
-                      <p className="text-xs text-zinc-400">{dateStr}</p>
+                      <p className="text-sm font-medium" style={{ color: "var(--dash-text-secondary)" }}>
+                        {timeStr}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
+                        {dateStr}
+                      </p>
                     </div>
                   </div>
                 );
@@ -247,7 +249,7 @@ export function DashboardOverview() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
@@ -255,14 +257,10 @@ export function DashboardOverview() {
           { href: "/dashboard/services", label: "Manage services", icon: Scissors },
           { href: "/dashboard/clients", label: "View clients", icon: Users },
         ].map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white/80 p-4 text-sm font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-white hover:text-zinc-950 active:scale-[0.99]"
-          >
-            <l.icon className="h-4 w-4 shrink-0 text-violet-700" />
+          <Link key={l.href} href={l.href} className="dash-link-row dash-inset-highlight">
+            <l.icon className="h-4 w-4 shrink-0" style={{ color: "var(--dash-icon-fg)" }} />
             {l.label}
-            <ArrowRight className="ml-auto h-3.5 w-3.5 text-zinc-400" />
+            <ArrowRight className="ml-auto h-3.5 w-3.5" style={{ color: "var(--dash-muted)" }} />
           </Link>
         ))}
       </div>

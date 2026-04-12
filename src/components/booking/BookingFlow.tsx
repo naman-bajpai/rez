@@ -411,7 +411,7 @@ export function BookingFlow({
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600 text-white mb-4">
+        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-white/60 bg-teal-900 text-teal-50 shadow-[0_20px_48px_-30px_rgba(15,118,110,0.95),inset_0_1px_0_rgba(255,255,255,0.22)]">
           <Sparkles className="w-7 h-7" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900">{business.name}</h1>
@@ -421,7 +421,7 @@ export function BookingFlow({
         <button
           type="button"
           onClick={handleManageBookings}
-          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-violet-200 bg-white/80 px-4 py-2 text-sm font-medium text-violet-700 transition hover:border-violet-300 hover:bg-violet-50"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/60 bg-white/54 px-4 py-2 text-sm font-medium text-teal-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition hover:border-teal-200/70 hover:bg-white/76 active:scale-[0.98]"
         >
           <ListChecks className="h-4 w-4" />
           Manage an existing booking
@@ -456,10 +456,10 @@ export function BookingFlow({
                 <div
                   className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors ${
                     isDone
-                      ? "bg-violet-600 text-white"
+                      ? "bg-teal-800 text-white"
                       : isActive
-                      ? "bg-violet-100 text-violet-700 border-2 border-violet-600"
-                      : "bg-gray-100 text-gray-400"
+                      ? "bg-teal-900/8 text-teal-800 border-2 border-teal-800"
+                      : "bg-white/54 text-zinc-400"
                   }`}
                 >
                   {isDone ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
@@ -467,15 +467,15 @@ export function BookingFlow({
                 <span
                   className={`${
                     isActive
-                      ? "text-violet-700 font-medium"
+                      ? "text-teal-800 font-medium"
                       : isDone
-                      ? "text-violet-600"
+                      ? "text-teal-700"
                       : "text-gray-400"
                   }`}
                 >
                   {s.label}
                 </span>
-                {i < arr.length - 1 && <div className="w-6 h-[1px] bg-gray-200 mx-1" />}
+                {i < arr.length - 1 && <div className="mx-1 h-[1px] w-6 bg-white/70" />}
               </div>
             );
           })}
@@ -484,7 +484,7 @@ export function BookingFlow({
 
       {/* Error banner */}
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200/70 bg-red-50/76 px-4 py-3 text-sm text-red-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] backdrop-blur-xl">
           {error}
         </div>
       )}
@@ -504,7 +504,7 @@ export function BookingFlow({
                 <button
                   key={service.id}
                   onClick={() => handleServiceSelect(service)}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 p-4 text-left transition-all hover:border-violet-400 hover:bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="flex items-center justify-between rounded-lg border border-white/60 bg-white/42 p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl transition-all hover:border-teal-300/80 hover:bg-white/72 focus:outline-none focus:ring-2 focus:ring-teal-700"
                 >
                   <div>
                     <p className="font-semibold text-gray-900">{service.name}</p>
@@ -520,7 +520,7 @@ export function BookingFlow({
                       )}
                     </div>
                   </div>
-                  <span className="text-lg font-bold text-violet-700">
+                  <span className="text-lg font-bold text-teal-800">
                     ${Number(service.price).toFixed(2)}
                   </span>
                 </button>
@@ -539,7 +539,7 @@ export function BookingFlow({
                 setAuthIntent("book");
                 setStep("select-service");
               }}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -602,7 +602,7 @@ export function BookingFlow({
                 (authIntent === "book" && !guestInfo.name) ||
                 loading
               }
-              className="w-full bg-violet-600 hover:bg-violet-700"
+              className="w-full bg-teal-800 hover:bg-teal-700"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -620,7 +620,7 @@ export function BookingFlow({
           <CardHeader>
             <button
               onClick={() => setStep("guest-info")}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -648,7 +648,7 @@ export function BookingFlow({
             <Button
               onClick={handleVerifyOtp}
               disabled={otpCode.length !== 6 || loading}
-              className="w-full bg-violet-600 hover:bg-violet-700"
+              className="w-full bg-teal-800 hover:bg-teal-700"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -657,7 +657,7 @@ export function BookingFlow({
               )}
             </Button>
             <button
-              className="text-sm text-center text-gray-500 hover:text-violet-600"
+              className="text-sm text-center text-gray-500 hover:text-teal-700"
               onClick={handleSendOtp}
             >
               Did not receive it? Resend
@@ -675,7 +675,7 @@ export function BookingFlow({
                 setAuthIntent("book");
                 setStep("select-service");
               }}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back to services
             </button>
@@ -707,7 +707,7 @@ export function BookingFlow({
                   setSelectedService(null);
                   setStep("select-service");
                 }}
-                className="rounded-lg bg-violet-600 hover:bg-violet-700"
+                className="rounded-lg bg-teal-800 hover:bg-teal-700"
               >
                 Book another service
               </Button>
@@ -734,7 +734,7 @@ export function BookingFlow({
                   return (
                     <div
                       key={booking.id}
-                      className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+                      className="rounded-lg border border-white/60 bg-white/44 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -803,7 +803,7 @@ export function BookingFlow({
                 setSlots([]);
                 setStep("my-bookings");
               }}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back to bookings
             </button>
@@ -830,7 +830,7 @@ export function BookingFlow({
                 {Object.entries(slotGroups).map(([date, daySlots]) => (
                   <div key={date}>
                     <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-violet-500" />
+                      <CalendarDays className="w-4 h-4 text-teal-700" />
                       {date}
                     </p>
                     <div className="grid grid-cols-3 gap-2">
@@ -838,7 +838,7 @@ export function BookingFlow({
                         <button
                           key={slot.startsAt}
                           onClick={() => handleRescheduleBooking(slot)}
-                          className="rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-700 transition-all hover:border-violet-400 hover:bg-violet-50 hover:text-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          className="rounded-lg border border-white/60 bg-white/40 py-2.5 text-sm font-medium text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl transition-all hover:border-teal-300/80 hover:bg-white/72 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-700"
                         >
                           {slot.label}
                         </button>
@@ -858,7 +858,7 @@ export function BookingFlow({
           <CardHeader>
             <button
               onClick={() => setStep("select-service")}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -886,7 +886,7 @@ export function BookingFlow({
                 {Object.entries(slotGroups).map(([date, daySlots]) => (
                   <div key={date}>
                     <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-violet-500" />
+                      <CalendarDays className="w-4 h-4 text-teal-700" />
                       {date}
                     </p>
                     <div className="grid grid-cols-3 gap-2">
@@ -894,7 +894,7 @@ export function BookingFlow({
                         <button
                           key={slot.startsAt}
                           onClick={() => handleSlotSelect(slot)}
-                          className="rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-700 transition-all hover:border-violet-400 hover:bg-violet-50 hover:text-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          className="rounded-lg border border-white/60 bg-white/40 py-2.5 text-sm font-medium text-gray-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl transition-all hover:border-teal-300/80 hover:bg-white/72 hover:text-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-700"
                         >
                           {slot.label}
                         </button>
@@ -914,7 +914,7 @@ export function BookingFlow({
           <CardHeader>
             <button
               onClick={() => setStep("select-slot")}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-teal-700 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -922,7 +922,7 @@ export function BookingFlow({
             <CardDescription>Review the details below</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="rounded-xl bg-violet-50 border border-violet-100 p-5 space-y-3">
+            <div className="space-y-3 rounded-lg border border-white/60 bg-white/44 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-semibold text-gray-900 text-lg">
@@ -932,23 +932,23 @@ export function BookingFlow({
                     {selectedService.duration_mins} min
                   </p>
                 </div>
-                <span className="text-xl font-bold text-violet-700">
+                <span className="text-xl font-bold text-teal-800">
                   ${Number(selectedService.price).toFixed(2)}
                 </span>
               </div>
-              <div className="border-t border-violet-100 pt-3 space-y-1.5">
+              <div className="border-t border-white/60 pt-3 space-y-1.5">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <CalendarDays className="w-4 h-4 text-violet-500 shrink-0" />
+                  <CalendarDays className="w-4 h-4 text-teal-700 shrink-0" />
                   {formatDate(selectedSlot.startsAt)}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4 text-violet-500 shrink-0" />
+                  <Clock className="w-4 h-4 text-teal-700 shrink-0" />
                   {formatTime(selectedSlot.startsAt)} – {formatTime(selectedSlot.endsAt)}
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-1.5">
+            <div className="space-y-1.5 rounded-lg border border-white/60 bg-white/44 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="w-4 h-4 text-gray-400 shrink-0" />
                 {guestSession.name}
@@ -962,7 +962,7 @@ export function BookingFlow({
             <Button
               onClick={handleConfirmBooking}
               disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-base"
+              className="w-full bg-teal-800 hover:bg-teal-700 h-12 text-base"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

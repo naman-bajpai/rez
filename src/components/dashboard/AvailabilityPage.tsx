@@ -3,13 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { CalendarClock, Check, Clock, Loader2, Save } from "lucide-react";
@@ -145,23 +139,20 @@ export function AvailabilityPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-zinc-200 bg-[oklch(0.997_0.005_95)] shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)]">
-        <CardHeader className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="dash-card overflow-hidden">
+        <CardHeader className="grid gap-4 border-b sm:grid-cols-[1fr_auto] sm:items-end" style={{ borderColor: "var(--dash-divider)" }}>
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
-              Booking hours
-            </p>
-            <CardTitle className="mt-3 text-4xl font-semibold tracking-tight text-zinc-950">
-              Availability
-            </CardTitle>
-            <CardDescription className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">
+            <p className="dash-eyebrow">Booking hours</p>
+            <CardTitle className="dash-h1 mt-3">Availability</CardTitle>
+            <CardDescription className="dash-subtitle mt-2 max-w-2xl">
               Choose the days and hours guests can book appointments.
             </CardDescription>
           </div>
           <Button
+            variant="dash"
             onClick={saveAvailability}
             disabled={loading || saving}
-            className="h-11 rounded-lg bg-zinc-950 px-5 text-[#fbfaf7] hover:bg-zinc-800"
+            className="h-11 shrink-0 rounded-lg px-5"
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -173,7 +164,7 @@ export function AvailabilityPage() {
             {saving ? "Saving" : saved ? "Saved" : "Save availability"}
           </Button>
         </CardHeader>
-      </Card>
+      </div>
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -182,18 +173,18 @@ export function AvailabilityPage() {
       )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <Card className="overflow-hidden border-zinc-200 bg-[oklch(0.997_0.005_95)] shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold tracking-tight text-zinc-950">
+        <div className="dash-card overflow-hidden">
+          <CardHeader className="border-b pb-4" style={{ borderColor: "var(--dash-divider)" }}>
+            <CardTitle className="text-lg font-semibold tracking-tight" style={{ color: "var(--dash-text)" }}>
               Weekly schedule
             </CardTitle>
-            <CardDescription className="text-sm text-zinc-500">
+            <CardDescription className="text-sm" style={{ color: "var(--dash-muted)" }}>
               Inactive days will not appear in booking slots.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 pt-4">
             {loading ? (
-              <div className="flex items-center justify-center gap-3 py-16 text-zinc-400">
+              <div className="flex items-center justify-center gap-3 py-16" style={{ color: "var(--dash-muted)" }}>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 Loading availability...
               </div>
@@ -201,22 +192,30 @@ export function AvailabilityPage() {
               availability.map((day) => (
                 <div
                   key={day.day_of_week}
-                  className="grid gap-3 rounded-lg border border-zinc-200 bg-white/80 p-3 sm:grid-cols-[150px_1fr_auto] sm:items-center"
+                  className="dash-card-muted grid gap-3 p-3 sm:grid-cols-[150px_1fr_auto] sm:items-center"
                 >
                   <div className="flex items-center justify-between gap-3 sm:justify-start">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-sm font-semibold text-zinc-700">
+                    <div
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold"
+                      style={{
+                        background: "var(--dash-icon-tile)",
+                        color: "var(--dash-icon-fg)",
+                      }}
+                    >
                       {day.shortLabel}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-zinc-950">{day.label}</p>
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
+                        {day.label}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--dash-muted)" }}>
                         {day.is_active ? "Accepting bookings" : "Closed"}
                       </p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                    <label className="grid gap-1 text-xs font-medium" style={{ color: "var(--dash-muted)" }}>
                       Opens
                       <Input
                         type="time"
@@ -225,10 +224,10 @@ export function AvailabilityPage() {
                         onChange={(event) =>
                           updateDay(day.day_of_week, { start_time: event.target.value })
                         }
-                        className="h-10 rounded-lg border-zinc-200 bg-white text-sm text-zinc-950 disabled:bg-zinc-50"
+                        className="dash-input h-10 rounded-lg text-sm disabled:opacity-60"
                       />
                     </label>
-                    <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                    <label className="grid gap-1 text-xs font-medium" style={{ color: "var(--dash-muted)" }}>
                       Closes
                       <Input
                         type="time"
@@ -237,19 +236,15 @@ export function AvailabilityPage() {
                         onChange={(event) =>
                           updateDay(day.day_of_week, { end_time: event.target.value })
                         }
-                        className="h-10 rounded-lg border-zinc-200 bg-white text-sm text-zinc-950 disabled:bg-zinc-50"
+                        className="dash-input h-10 rounded-lg text-sm disabled:opacity-60"
                       />
                     </label>
                   </div>
 
                   <Button
                     type="button"
-                    variant={day.is_active ? "default" : "outline"}
-                    className={
-                      day.is_active
-                        ? "h-10 rounded-lg bg-zinc-950 text-[#fbfaf7] hover:bg-zinc-800"
-                        : "h-10 rounded-lg border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 hover:text-zinc-950"
-                    }
+                    variant={day.is_active ? "dash" : "dashOutline"}
+                    className="h-10 rounded-lg"
                     onClick={() =>
                       updateDay(day.day_of_week, { is_active: !day.is_active })
                     }
@@ -260,35 +255,38 @@ export function AvailabilityPage() {
               ))
             )}
           </CardContent>
-        </Card>
+        </div>
 
-        <Card className="h-fit border-zinc-200 bg-white/82 shadow-[0_24px_80px_-64px_rgba(39,39,42,0.8)]">
+        <div className="dash-card h-fit overflow-hidden">
           <CardHeader>
-            <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700">
+            <div className="dash-icon-circle mb-1 h-10 w-10">
               <CalendarClock className="h-4 w-4" />
             </div>
-            <CardTitle className="text-lg font-semibold tracking-tight text-zinc-950">
+            <CardTitle className="text-lg font-semibold tracking-tight" style={{ color: "var(--dash-text)" }}>
               Booking window
             </CardTitle>
-            <CardDescription className="text-sm leading-6 text-zinc-500">
+            <CardDescription className="text-sm leading-6" style={{ color: "var(--dash-muted)" }}>
               Guests only see slots inside active days, minus existing pending and confirmed bookings.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Separator className="mb-4 bg-zinc-200" />
+            <Separator className="mb-4" style={{ backgroundColor: "var(--dash-divider)" }} />
             <div className="space-y-3">
               {activeDays.length === 0 ? (
-                <p className="rounded-lg bg-zinc-50 px-3 py-4 text-sm text-zinc-500">
+                <p className="dash-empty px-3 py-4 text-sm" style={{ color: "var(--dash-muted)" }}>
                   No bookable days are active yet.
                 </p>
               ) : (
                 activeDays.map((day) => (
                   <div key={day.day_of_week} className="flex items-center justify-between gap-3">
-                    <Badge variant="secondary" className="rounded-lg bg-zinc-100 text-zinc-700">
+                    <Badge variant="secondary" className="rounded-lg" style={{ background: "var(--dash-icon-tile)", color: "var(--dash-text)" }}>
                       {day.shortLabel}
                     </Badge>
-                    <span className="flex items-center gap-2 text-sm font-medium text-zinc-700">
-                      <Clock className="h-3.5 w-3.5 text-zinc-400" />
+                    <span
+                      className="flex items-center gap-2 text-sm font-medium"
+                      style={{ color: "var(--dash-text-secondary)" }}
+                    >
+                      <Clock className="h-3.5 w-3.5" style={{ color: "var(--dash-muted)" }} />
                       {toDisplayTime(day.start_time)} - {toDisplayTime(day.end_time)}
                     </span>
                   </div>
@@ -296,7 +294,7 @@ export function AvailabilityPage() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );
