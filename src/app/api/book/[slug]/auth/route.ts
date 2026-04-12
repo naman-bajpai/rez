@@ -12,8 +12,8 @@ export async function POST(
     const body = await request.json();
     const { email, name } = body as { email?: string; name?: string };
 
-    if (!email || !name) {
-      return NextResponse.json({ error: "email and name are required" }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
 
     const supabase = createServiceRoleClient();
@@ -27,7 +27,12 @@ export async function POST(
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
-    await createAndSendOtp(email.toLowerCase().trim(), business.id as string, name.trim());
+    const fallbackName = email.split("@")[0] || "Guest";
+    await createAndSendOtp(
+      email.toLowerCase().trim(),
+      business.id as string,
+      (name?.trim() || fallbackName).trim()
+    );
 
     return NextResponse.json({ ok: true });
   } catch (err) {

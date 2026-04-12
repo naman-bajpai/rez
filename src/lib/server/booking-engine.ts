@@ -8,9 +8,10 @@ export async function getAvailableSlots(params: {
   serviceId: string;
   dateFrom: string; // YYYY-MM-DD
   dateTo: string;   // YYYY-MM-DD
+  excludeBookingId?: string;
 }): Promise<{ startsAt: string; endsAt: string; label: string }[]> {
   const supabase = createServiceRoleClient();
-  const { businessId, serviceId, dateFrom, dateTo } = params;
+  const { businessId, serviceId, dateFrom, dateTo, excludeBookingId } = params;
 
   // Get service duration
   const { data: service, error: svcErr } = await supabase
@@ -37,18 +38,18 @@ export async function getAvailableSlots(params: {
   // Get existing confirmed/pending bookings in the range
   const { data: existingBookings } = await supabase
     .from("bookings")
-    .select("starts_at, ends_at")
+    .select("id, starts_at, ends_at")
     .eq("business_id", businessId)
     .in("status", ["pending", "confirmed"])
     .gte("starts_at", `${dateFrom}T00:00:00.000Z`)
     .lte("starts_at", `${dateTo}T23:59:59.000Z`);
 
-  const bookedRanges = (existingBookings ?? []).map(
-    (b: { starts_at: string; ends_at: string }) => ({
+  const bookedRanges = (existingBookings ?? [])
+    .filter((b: { id: string }) => b.id !== excludeBookingId)
+    .map((b: { starts_at: string; ends_at: string }) => ({
       start: new Date(b.starts_at).getTime(),
       end: new Date(b.ends_at).getTime(),
-    })
-  );
+    }));
 
   const slots: { startsAt: string; endsAt: string; label: string }[] = [];
   const scheduleMap = new Map<number, { start: string; end: string }>();

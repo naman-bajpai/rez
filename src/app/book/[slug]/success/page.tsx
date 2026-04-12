@@ -63,7 +63,7 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-green-100 mb-6">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">You're booked!</h1>
+          <h1 className="text-3xl font-bold text-gray-900">You are booked!</h1>
           <p className="text-gray-500 mt-2">
             {booking?.guest_name
               ? `See you soon, ${booking.guest_name}!`

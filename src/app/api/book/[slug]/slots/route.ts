@@ -13,6 +13,7 @@ export async function GET(
     const serviceId = searchParams.get("service_id");
     const dateFrom = searchParams.get("date_from");
     const dateTo = searchParams.get("date_to");
+    const excludeBookingId = searchParams.get("exclude_booking_id") ?? undefined;
 
     if (!serviceId || !dateFrom || !dateTo) {
       return NextResponse.json(
@@ -46,6 +47,7 @@ export async function GET(
       serviceId,
       dateFrom,
       dateTo,
+      excludeBookingId,
     });
 
     return NextResponse.json({ slots });

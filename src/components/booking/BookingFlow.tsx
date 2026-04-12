@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import {
   CalendarDays,
+  CalendarX,
   Clock,
   CheckCircle2,
   ArrowLeft,
@@ -15,6 +16,8 @@ import {
   Mail,
   User,
   Sparkles,
+  ListChecks,
+  RefreshCw,
 } from "lucide-react";
 
 type Service = {
@@ -44,12 +47,32 @@ type Step =
   | "guest-info"
   | "verify-otp"
   | "select-slot"
-  | "confirm";
+  | "confirm"
+  | "my-bookings"
+  | "reschedule-slot";
 
 type GuestSession = {
   token: string;
   email: string;
   name: string;
+};
+
+type GuestBooking = {
+  id: string;
+  service_id: string | null;
+  starts_at: string;
+  ends_at: string;
+  status: string;
+  payment_status: string;
+  total_price: number;
+  guest_name: string | null;
+  guest_email: string | null;
+  services: {
+    id: string;
+    name: string;
+    duration_mins: number;
+    price: number;
+  } | null;
 };
 
 function formatDate(dateStr: string) {
@@ -90,6 +113,13 @@ function getTodayAndWeekOut() {
   return { dateFrom: fmt(today), dateTo: fmt(weekOut) };
 }
 
+function canModifyBooking(booking: GuestBooking) {
+  return (
+    ["pending", "confirmed"].includes(booking.status) &&
+    new Date(booking.starts_at) > new Date()
+  );
+}
+
 export function BookingFlow({
   slug,
   business,
@@ -108,8 +138,9 @@ export function BookingFlow({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
-  const [otpSent, setOtpSent] = useState(false);
+  const [authIntent, setAuthIntent] = useState<"book" | "manage">("book");
+  const [myBookings, setMyBookings] = useState<GuestBooking[]>([]);
+  const [reschedulingBooking, setReschedulingBooking] = useState<GuestBooking | null>(null);
 
   const storageKey = `bk_guest_${slug}`;
 
@@ -128,14 +159,21 @@ export function BookingFlow({
   }, [storageKey]);
 
   const loadSlots = useCallback(
-    async (token: string) => {
-      if (!selectedService) return;
+    async (token: string, excludeBookingId?: string, serviceOverride?: Service) => {
+      const service = serviceOverride ?? selectedService;
+      if (!service) return;
       setLoading(true);
       setError(null);
       try {
         const { dateFrom, dateTo } = getTodayAndWeekOut();
+        const params = new URLSearchParams({
+          service_id: service.id,
+          date_from: dateFrom,
+          date_to: dateTo,
+        });
+        if (excludeBookingId) params.set("exclude_booking_id", excludeBookingId);
         const res = await fetch(
-          `/api/book/${slug}/slots?service_id=${selectedService.id}&date_from=${dateFrom}&date_to=${dateTo}`,
+          `/api/book/${slug}/slots?${params.toString()}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const data = await res.json();
@@ -150,11 +188,46 @@ export function BookingFlow({
     [slug, selectedService]
   );
 
+  const loadMyBookings = useCallback(
+    async (token: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/book/${slug}/my-bookings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "Failed to load bookings");
+        setMyBookings(data.bookings ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load bookings");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [slug]
+  );
+
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
     setError(null);
+    setAuthIntent("book");
     if (guestSession) {
       setStep("select-slot");
+    } else {
+      setStep("guest-info");
+    }
+  };
+
+  const handleManageBookings = () => {
+    setSelectedService(null);
+    setSelectedSlot(null);
+    setReschedulingBooking(null);
+    setAuthIntent("manage");
+    setError(null);
+    if (guestSession) {
+      setStep("my-bookings");
+      loadMyBookings(guestSession.token);
     } else {
       setStep("guest-info");
     }
@@ -171,7 +244,6 @@ export function BookingFlow({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to send code");
-      setOtpSent(true);
       setStep("verify-otp");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send code");
@@ -202,7 +274,12 @@ export function BookingFlow({
       };
       setGuestSession(session);
       localStorage.setItem(storageKey, JSON.stringify(session));
-      setStep("select-slot");
+      if (authIntent === "manage" || !selectedService) {
+        setStep("my-bookings");
+        loadMyBookings(session.token);
+      } else {
+        setStep("select-slot");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Verification failed");
     } finally {
@@ -243,10 +320,79 @@ export function BookingFlow({
         return;
       }
 
-      setBookingId(data.booking_id);
       window.location.href = `/book/${slug}/success?booking_id=${data.booking_id}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Booking failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelBooking = async (booking: GuestBooking) => {
+    if (!guestSession) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/book/${slug}/my-bookings/${booking.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${guestSession.token}`,
+        },
+        body: JSON.stringify({ action: "cancel" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to cancel booking");
+      setMyBookings((prev) => prev.map((b) => (b.id === booking.id ? data.booking : b)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to cancel booking");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartReschedule = async (booking: GuestBooking) => {
+    if (!guestSession || !booking.services) return;
+    const service = services.find((item) => item.id === booking.services?.id);
+    if (!service) {
+      setError("That service is no longer available for online rescheduling.");
+      return;
+    }
+    setSelectedService(service);
+    setSelectedSlot(null);
+    setReschedulingBooking(booking);
+    setStep("reschedule-slot");
+    await loadSlots(guestSession.token, booking.id, service);
+  };
+
+  const handleRescheduleBooking = async (slot: TimeSlot) => {
+    if (!guestSession || !reschedulingBooking || !selectedService) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/book/${slug}/my-bookings/${reschedulingBooking.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${guestSession.token}`,
+        },
+        body: JSON.stringify({
+          action: "reschedule",
+          service_id: selectedService.id,
+          starts_at: slot.startsAt,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to reschedule booking");
+      setMyBookings((prev) =>
+        prev.map((b) => (b.id === reschedulingBooking.id ? data.booking : b))
+      );
+      setReschedulingBooking(null);
+      setSelectedService(null);
+      setSlots([]);
+      setStep("my-bookings");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to reschedule booking");
     } finally {
       setLoading(false);
     }
@@ -272,57 +418,69 @@ export function BookingFlow({
         {business.owner_name && (
           <p className="text-gray-500 mt-1">with {business.owner_name}</p>
         )}
+        <button
+          type="button"
+          onClick={handleManageBookings}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-violet-200 bg-white/80 px-4 py-2 text-sm font-medium text-violet-700 transition hover:border-violet-300 hover:bg-violet-50"
+        >
+          <ListChecks className="h-4 w-4" />
+          Manage an existing booking
+        </button>
       </div>
 
       {/* Progress steps */}
-      <div className="flex items-center justify-center gap-2 text-sm">
-        {(
-          [
-            { key: "select-service", label: "Service" },
-            { key: "guest-info", label: "Your info" },
-            { key: "select-slot", label: "Time" },
-            { key: "confirm", label: "Confirm" },
-          ] as { key: Step; label: string }[]
-        ).map((s, i, arr) => {
-          const stepOrder: Step[] = [
-            "select-service",
-            "guest-info",
-            "verify-otp",
-            "select-slot",
-            "confirm",
-          ];
-          const currentIndex = stepOrder.indexOf(step);
-          const sIndex = stepOrder.indexOf(s.key);
-          const isActive = s.key === step || (s.key === "guest-info" && step === "verify-otp");
-          const isDone = sIndex < currentIndex;
+      {step !== "my-bookings" && step !== "reschedule-slot" && (
+        <div className="flex items-center justify-center gap-2 text-sm">
+          {(
+            [
+              { key: "select-service", label: "Service" },
+              { key: "guest-info", label: "Your info" },
+              { key: "select-slot", label: "Time" },
+              { key: "confirm", label: "Confirm" },
+            ] as { key: Step; label: string }[]
+          ).map((s, i, arr) => {
+            const stepOrder: Step[] = [
+              "select-service",
+              "guest-info",
+              "verify-otp",
+              "select-slot",
+              "confirm",
+            ];
+            const currentIndex = stepOrder.indexOf(step);
+            const sIndex = stepOrder.indexOf(s.key);
+            const isActive = s.key === step || (s.key === "guest-info" && step === "verify-otp");
+            const isDone = sIndex < currentIndex;
 
-          return (
-            <div key={s.key} className="flex items-center gap-2">
-              <div
-                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors ${
-                  isDone
-                    ? "bg-violet-600 text-white"
-                    : isActive
-                    ? "bg-violet-100 text-violet-700 border-2 border-violet-600"
-                    : "bg-gray-100 text-gray-400"
-                }`}
-              >
-                {isDone ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+            return (
+              <div key={s.key} className="flex items-center gap-2">
+                <div
+                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors ${
+                    isDone
+                      ? "bg-violet-600 text-white"
+                      : isActive
+                      ? "bg-violet-100 text-violet-700 border-2 border-violet-600"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  {isDone ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                </div>
+                <span
+                  className={`${
+                    isActive
+                      ? "text-violet-700 font-medium"
+                      : isDone
+                      ? "text-violet-600"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {s.label}
+                </span>
+                {i < arr.length - 1 && <div className="w-6 h-[1px] bg-gray-200 mx-1" />}
               </div>
-              <span
-                className={`${
-                  isActive ? "text-violet-700 font-medium" : isDone ? "text-violet-600" : "text-gray-400"
-                }`}
-              >
-                {s.label}
-              </span>
-              {i < arr.length - 1 && (
-                <div className="w-6 h-[1px] bg-gray-200 mx-1" />
-              )}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Error banner */}
       {error && (
@@ -336,7 +494,7 @@ export function BookingFlow({
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Choose a service</CardTitle>
-            <CardDescription>Select what you'd like to book</CardDescription>
+            <CardDescription>Select what you would like to book</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             {services.length === 0 ? (
@@ -377,32 +535,41 @@ export function BookingFlow({
         <Card>
           <CardHeader>
             <button
-              onClick={() => setStep("select-service")}
+              onClick={() => {
+                setAuthIntent("book");
+                setStep("select-service");
+              }}
               className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <CardTitle className="text-xl">Your details</CardTitle>
+            <CardTitle className="text-xl">
+              {authIntent === "manage" ? "Find your bookings" : "Your details"}
+            </CardTitle>
             <CardDescription>
-              We'll send a verification code to confirm your booking
+              {authIntent === "manage"
+                ? "Enter your email and we will send a verification code"
+                : "We'll send a verification code to confirm your booking"}
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Full name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  id="name"
-                  placeholder="Jane Smith"
-                  className="pl-9"
-                  value={guestInfo.name}
-                  onChange={(e) =>
-                    setGuestInfo((p) => ({ ...p, name: e.target.value }))
-                  }
-                />
+            {authIntent === "book" && (
+              <div className="grid gap-2">
+                <Label htmlFor="name">Full name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="name"
+                    placeholder="Jane Smith"
+                    className="pl-9"
+                    value={guestInfo.name}
+                    onChange={(e) =>
+                      setGuestInfo((p) => ({ ...p, name: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="email">Email address</Label>
               <div className="relative">
@@ -417,15 +584,24 @@ export function BookingFlow({
                     setGuestInfo((p) => ({ ...p, email: e.target.value }))
                   }
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && guestInfo.name && guestInfo.email)
+                    if (
+                      e.key === "Enter" &&
+                      guestInfo.email &&
+                      (authIntent === "manage" || guestInfo.name)
+                    ) {
                       handleSendOtp();
+                    }
                   }}
                 />
               </div>
             </div>
             <Button
               onClick={handleSendOtp}
-              disabled={!guestInfo.name || !guestInfo.email || loading}
+              disabled={
+                !guestInfo.email ||
+                (authIntent === "book" && !guestInfo.name) ||
+                loading
+              }
               className="w-full bg-violet-600 hover:bg-violet-700"
             >
               {loading ? (
@@ -484,8 +660,194 @@ export function BookingFlow({
               className="text-sm text-center text-gray-500 hover:text-violet-600"
               onClick={handleSendOtp}
             >
-              Didn't receive it? Resend
+              Did not receive it? Resend
             </button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP: My Bookings */}
+      {step === "my-bookings" && (
+        <Card>
+          <CardHeader>
+            <button
+              onClick={() => {
+                setAuthIntent("book");
+                setStep("select-service");
+              }}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to services
+            </button>
+            <CardTitle className="text-xl">Your bookings</CardTitle>
+            <CardDescription>
+              Signed in as <strong>{guestSession?.email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => guestSession && loadMyBookings(guestSession.token)}
+                disabled={loading || !guestSession}
+                className="rounded-lg"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Refresh
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setAuthIntent("book");
+                  setSelectedService(null);
+                  setStep("select-service");
+                }}
+                className="rounded-lg bg-violet-600 hover:bg-violet-700"
+              >
+                Book another service
+              </Button>
+            </div>
+
+            {loading && myBookings.length === 0 ? (
+              <div className="flex items-center justify-center py-12 gap-3 text-gray-500">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Loading bookings...
+              </div>
+            ) : myBookings.length === 0 ? (
+              <div className="text-center py-10">
+                <CalendarDays className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">No bookings found for this email.</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Book a service to see it here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {myBookings.map((booking) => {
+                  const modifiable = canModifyBooking(booking);
+                  const serviceName = booking.services?.name ?? "Appointment";
+                  return (
+                    <div
+                      key={booking.id}
+                      className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-gray-900">{serviceName}</p>
+                          <p className="mt-1 text-sm text-gray-600">
+                            {formatDate(booking.starts_at)} at {formatTime(booking.starts_at)}
+                          </p>
+                          <p className="mt-1 text-sm text-gray-500">
+                            ${Number(booking.total_price).toFixed(2)}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            booking.status === "confirmed"
+                              ? "success"
+                              : booking.status === "pending"
+                              ? "warning"
+                              : "secondary"
+                          }
+                        >
+                          {booking.status}
+                        </Badge>
+                      </div>
+
+                      {modifiable && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleStartReschedule(booking)}
+                            disabled={loading}
+                            className="rounded-lg"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            Reschedule
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => handleCancelBooking(booking)}
+                            disabled={loading}
+                            className="rounded-lg"
+                          >
+                            <CalendarX className="h-4 w-4" />
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP: Reschedule Slot */}
+      {step === "reschedule-slot" && reschedulingBooking && selectedService && (
+        <Card>
+          <CardHeader>
+            <button
+              onClick={() => {
+                setReschedulingBooking(null);
+                setSelectedService(null);
+                setSlots([]);
+                setStep("my-bookings");
+              }}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-violet-600 mb-2 -mt-1"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to bookings
+            </button>
+            <CardTitle className="text-xl">Choose a new time</CardTitle>
+            <CardDescription>
+              {selectedService.name} · currently {formatDate(reschedulingBooking.starts_at)} at{" "}
+              {formatTime(reschedulingBooking.starts_at)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-12 gap-3 text-gray-500">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Finding available times...
+              </div>
+            ) : slots.length === 0 ? (
+              <div className="text-center py-10">
+                <CalendarDays className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">No available reschedule times in the next 2 weeks.</p>
+                <p className="text-sm text-gray-400 mt-1">Please check back soon.</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {Object.entries(slotGroups).map(([date, daySlots]) => (
+                  <div key={date}>
+                    <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-violet-500" />
+                      {date}
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {daySlots.map((slot) => (
+                        <button
+                          key={slot.startsAt}
+                          onClick={() => handleRescheduleBooking(slot)}
+                          className="rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-700 transition-all hover:border-violet-400 hover:bg-violet-50 hover:text-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                        >
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

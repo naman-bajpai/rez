@@ -21,6 +21,12 @@ export async function GET(request: Request) {
         .eq("business_id", businessId)
         .gte("starts_at", sinceStr);
 
+      const { data: business } = await supabase
+        .from("businesses")
+        .select("name, slug")
+        .eq("id", businessId)
+        .maybeSingle();
+
       const all = bookings ?? [];
       const confirmed = all.filter((b: { status: string }) => b.status === "confirmed");
       const revenue = confirmed
@@ -51,6 +57,7 @@ export async function GET(request: Request) {
         pending_bookings: pending,
         cancelled_bookings: cancelled,
         revenue,
+        business: business ?? null,
         upcoming: upcoming ?? [],
       });
     });

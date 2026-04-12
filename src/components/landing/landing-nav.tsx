@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,19 +9,16 @@ const ease = "[transition-timing-function:cubic-bezier(0.32,0.72,0,1)]";
 
 function LogoMark() {
   return (
-    <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-[0_0_28px_-6px_rgba(139,92,246,0.75)] ring-1 ring-white/25"
-      aria-hidden
-    >
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" className="text-white/95">
-        <path
-          d="M7 5h10M7 9h10M7 13h6v6H7v-6Z"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl ring-1 ring-white/15">
+      <Image
+        src="/images/ReZ.png"
+        alt=""
+        width={72}
+        height={72}
+        sizes="36px"
+        className="h-9 w-9 object-contain"
+        priority
+      />
     </span>
   );
 }
@@ -107,14 +105,6 @@ export function LandingNav() {
                 onClick={close}
               >
                 <LogoMark />
-                <div className="min-w-0">
-                  <span className="block text-[15px] font-semibold tracking-tight text-zinc-950">
-                    ReZ
-                  </span>
-                  <span className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500 sm:block">
-                    Booking OS
-                  </span>
-                </div>
               </Link>
 
               <div

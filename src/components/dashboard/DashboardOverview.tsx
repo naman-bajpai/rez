@@ -6,11 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
+  Check,
+  Copy,
   DollarSign,
   Users,
   TrendingUp,
   ArrowRight,
   Clock,
+  ExternalLink,
+  Link as LinkIcon,
   Loader2,
   Scissors,
 } from "lucide-react";
@@ -22,6 +26,10 @@ type Analytics = {
   pending_bookings: number;
   cancelled_bookings: number;
   revenue: number;
+  business: {
+    name: string;
+    slug: string;
+  } | null;
   upcoming: {
     id: string;
     starts_at: string;
@@ -34,6 +42,7 @@ export function DashboardOverview() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -85,6 +94,16 @@ export function DashboardOverview() {
 
   if (!analytics) return null;
 
+  const bookingPath = analytics.business?.slug ? `/book/${analytics.business.slug}` : null;
+
+  const copyBookingLink = async () => {
+    if (!bookingPath) return;
+    const bookingUrl = `${window.location.origin}${bookingPath}`;
+    await navigator.clipboard.writeText(bookingUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
   const stats = [
     { label: "Revenue", value: `$${analytics.revenue.toFixed(2)}`, icon: DollarSign },
     { label: "Total bookings", value: analytics.total_bookings, icon: CalendarDays },
@@ -116,6 +135,38 @@ export function DashboardOverview() {
           </Link>
         </Button>
       </div>
+
+      {bookingPath && (
+        <div className="grid gap-4 rounded-lg border border-zinc-200 bg-white/85 p-5 shadow-[0_24px_80px_-60px_rgba(39,39,42,0.7)] lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="min-w-0">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-zinc-950">
+              <LinkIcon className="h-4 w-4 text-violet-700" />
+              Booking link
+            </div>
+            <p className="text-sm text-zinc-600">
+              Share this with clients or place it in your Instagram bio.
+            </p>
+            <p className="mt-3 truncate rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-700">
+              {bookingPath}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
+            <Button
+              type="button"
+              onClick={copyBookingLink}
+              className="h-10 rounded-lg bg-violet-700 px-4 text-white hover:bg-violet-800"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copied" : "Copy link"}
+            </Button>
+            <Button asChild type="button" variant="outline" className="h-10 rounded-lg">
+              <Link href={bookingPath} target="_blank">
+                Open link <ExternalLink className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (

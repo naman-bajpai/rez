@@ -16,9 +16,9 @@ export async function POST(
       code?: string;
     };
 
-    if (!email || !name || !code) {
+    if (!email || !code) {
       return NextResponse.json(
-        { error: "email, name, and code are required" },
+        { error: "email and code are required" },
         { status: 400 }
       );
     }
@@ -34,14 +34,19 @@ export async function POST(
       return NextResponse.json({ error: "Business not found" }, { status: 404 });
     }
 
+    const fallbackName = email.split("@")[0] || "Guest";
     const token = await verifyOtpAndCreateSession(
       email.toLowerCase().trim(),
       business.id as string,
       code.trim(),
-      name.trim()
+      (name?.trim() || fallbackName).trim()
     );
 
-    return NextResponse.json({ token, email: email.toLowerCase().trim(), name: name.trim() });
+    return NextResponse.json({
+      token,
+      email: email.toLowerCase().trim(),
+      name: (name?.trim() || fallbackName).trim(),
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Verification failed";
     return NextResponse.json({ error: msg }, { status: 400 });
