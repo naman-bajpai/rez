@@ -34,7 +34,6 @@ export async function withBusiness<T>(
   request: Request,
   handler: (ctx: AuthedContext) => Promise<T>
 ): Promise<T> {
-  // Dev escape hatch: X-Business-ID header
   if (
     process.env.ALLOW_LEGACY_BUSINESS_HEADER === "true" ||
     process.env.NODE_ENV === "development"

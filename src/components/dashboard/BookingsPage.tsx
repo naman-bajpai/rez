@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Check, X, CalendarDays } from "lucide-react";
+import { Loader2, Check, X, CalendarDays, Filter } from "lucide-react";
 
 type Booking = {
   id: string;
@@ -33,6 +33,7 @@ export function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -58,6 +59,7 @@ export function BookingsPage() {
 
   const updateStatus = async (id: string, status: string) => {
     setActionLoading(id);
+    setActionError(null);
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method: "PATCH",
@@ -68,58 +70,72 @@ export function BookingsPage() {
       if (!res.ok) throw new Error(data.error ?? "Failed");
       await fetchBookings();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Action failed");
+      setActionError(err instanceof Error ? err.message : "Action failed");
     } finally {
       setActionLoading(null);
     }
   };
 
   return (
-    <div className="max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col justify-between gap-4 rounded-lg border border-zinc-200 bg-[oklch(0.997_0.005_95)] p-6 shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)] sm:flex-row sm:items-end">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage all appointments</p>
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+            Schedule
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-zinc-950">
+            Bookings
+          </h1>
+          <p className="mt-2 text-sm text-zinc-600">Review requests and update appointment status.</p>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
-            <SelectItem value="no_show">No show</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-400" />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 w-44 rounded-lg border-zinc-200 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="confirmed">Confirmed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="no_show">No show</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      <Card>
+      {actionError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
+
+      <Card className="overflow-hidden border-zinc-200 bg-[oklch(0.997_0.005_95)] shadow-[0_30px_90px_-60px_rgba(39,39,42,0.7)]">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">
+          <CardTitle className="text-lg font-semibold tracking-tight text-zinc-950">
             {loading ? "Loading…" : `${bookings.length} booking${bookings.length !== 1 ? "s" : ""}`}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Loading bookings…
+            <div className="flex items-center justify-center gap-3 py-16 text-zinc-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Loading bookings...
             </div>
           ) : bookings.length === 0 ? (
-            <div className="text-center py-12">
-              <CalendarDays className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">No bookings found.</p>
+            <div className="rounded-lg bg-zinc-50 py-12 text-center">
+              <CalendarDays className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
+              <p className="text-sm font-medium text-zinc-500">No bookings found.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-zinc-100">
               {bookings.map((b) => {
                 const d = new Date(b.starts_at);
                 const dateStr = d.toLocaleDateString("en-US", {
@@ -141,15 +157,15 @@ export function BookingsPage() {
                 return (
                   <div
                     key={b.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4"
+                    className="flex flex-col justify-between gap-4 py-5 sm:flex-row sm:items-center"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-700 shrink-0">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-sm font-bold text-violet-800">
                         {(b.guest_name ?? "?")[0].toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium text-gray-900 text-sm">
+                          <span className="text-sm font-semibold text-zinc-950">
                             {b.guest_name ?? "Guest"}
                           </span>
                           <Badge
@@ -162,29 +178,29 @@ export function BookingsPage() {
                             <Badge variant="success" className="text-xs">Paid</Badge>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="mt-1 text-xs text-zinc-500">
                           {b.services?.name ?? "Appointment"} · {b.guest_email}
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="mt-1 text-xs text-zinc-400">
                           {dateStr} at {timeStr} · ${Number(b.total_price).toFixed(2)}
                         </p>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0 sm:ml-4">
+                    <div className="flex shrink-0 items-center gap-2 sm:ml-4">
                       {isLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
                       ) : (
                         <>
                           {b.status === "pending" && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-8 text-xs border-green-200 text-green-700 hover:bg-green-50"
+                              className="h-8 rounded-lg border-green-200 text-xs text-green-700 hover:bg-green-50"
                               onClick={() => updateStatus(b.id, "confirmed")}
                             >
-                              <Check className="w-3.5 h-3.5 mr-1" />
+                              <Check className="mr-1 h-3.5 w-3.5" />
                               Confirm
                             </Button>
                           )}
@@ -192,10 +208,10 @@ export function BookingsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-8 text-xs border-red-200 text-red-600 hover:bg-red-50"
+                              className="h-8 rounded-lg border-red-200 text-xs text-red-600 hover:bg-red-50"
                               onClick={() => updateStatus(b.id, "cancelled")}
                             >
-                              <X className="w-3.5 h-3.5 mr-1" />
+                              <X className="mr-1 h-3.5 w-3.5" />
                               Cancel
                             </Button>
                           )}
@@ -203,7 +219,7 @@ export function BookingsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-8 text-xs"
+                              className="h-8 rounded-lg text-xs"
                               onClick={() => updateStatus(b.id, "no_show")}
                             >
                               No show

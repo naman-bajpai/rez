@@ -1,7 +1,24 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { createServiceRoleClient } from "@/lib/server/supabase";
 import { AuthForm } from "@/components/auth/auth-form";
 
-export default function SignupPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SignupPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (session?.user?.id) {
+    const supabase = createServiceRoleClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("business_id")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    redirect(profile?.business_id ? "/dashboard" : "/onboarding");
+  }
+
   return (
     <main className="min-h-[100dvh] bg-[oklch(0.985_0.008_95)] px-4 py-6 text-zinc-950">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-6xl flex-col">
