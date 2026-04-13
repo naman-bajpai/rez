@@ -29,7 +29,7 @@ export default async function GuestBookingPage({ params }: Props) {
   return (
     <main className="relative min-h-[100dvh] overflow-hidden bg-[oklch(0.975_0.018_185)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,oklch(0.88_0.07_182/0.62),transparent_30rem),radial-gradient(circle_at_90%_20%,oklch(0.92_0.045_145/0.52),transparent_34rem)]" />
-      <div className="relative mx-auto max-w-2xl px-4 py-8 sm:py-12">
+      <div className="relative mx-auto max-w-5xl px-4 py-8 sm:py-12">
         <BookingFlow
           slug={slug}
           business={data.business}
