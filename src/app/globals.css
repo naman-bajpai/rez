@@ -75,3 +75,252 @@ body::before {
   background-size: 72px 72px;
   mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 70%);
 }
+
+/* Make interactive controls communicate clickability with cursor feedback. */
+a,
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+label[for],
+summary,
+select,
+option {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+.landing-premium {
+  --landing-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  isolation: isolate;
+}
+
+.landing-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 64% 8%, oklch(0.58 0.24 291 / 0.32), transparent 28rem),
+    radial-gradient(circle at 82% 24%, oklch(0.64 0.19 238 / 0.24), transparent 24rem),
+    radial-gradient(circle at 18% 46%, oklch(0.42 0.14 305 / 0.16), transparent 30rem),
+    linear-gradient(180deg, oklch(0.065 0.014 285), oklch(0.045 0.012 285) 54%, oklch(0.06 0.014 285));
+}
+
+.landing-ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.78), transparent 70%);
+}
+
+.landing-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+}
+
+.landing-cursor {
+  position: fixed;
+  z-index: 34;
+  width: 220px;
+  height: 220px;
+  pointer-events: none;
+  border-radius: 999px;
+  opacity: 0.32;
+  background: radial-gradient(circle, oklch(0.66 0.24 291 / 0.65), transparent 68%);
+  filter: blur(20px);
+  will-change: transform;
+}
+
+.landing-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  padding: 0.45rem 0.75rem;
+  color: oklch(0.74 0.13 291);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(3.5rem) scale(0.98);
+  filter: blur(14px);
+  transition:
+    opacity 900ms var(--landing-ease),
+    transform 900ms var(--landing-ease),
+    filter 900ms var(--landing-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.landing-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.landing-word {
+  opacity: 0;
+  transform: translateY(0.55em) rotateX(-16deg);
+  animation: landing-word-in 900ms var(--landing-ease) forwards;
+  animation-delay: var(--word-delay, 0ms);
+  transform-origin: left bottom;
+}
+
+.landing-screen {
+  backface-visibility: hidden;
+  will-change: transform;
+  transition:
+    transform 900ms var(--landing-ease),
+    box-shadow 900ms var(--landing-ease);
+}
+
+.landing-card-main {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2.25rem;
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow:
+    0 44px 160px rgba(0, 0, 0, 0.62),
+    0 0 120px rgba(94, 23, 235, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translateZ(60px);
+}
+
+.landing-hero-stage > div {
+  transition: transform 620ms var(--landing-ease);
+}
+
+.landing-feature-card {
+  transform-style: preserve-3d;
+  transition:
+    transform 700ms var(--landing-ease),
+    box-shadow 700ms var(--landing-ease),
+    border-color 700ms var(--landing-ease);
+}
+
+.landing-feature-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-18px) rotateX(5deg) rotateY(-6deg) translateZ(30px);
+  box-shadow: 0 36px 120px rgba(94, 23, 235, 0.2);
+}
+
+.landing-flow-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(2rem) scale(0.96);
+  filter: blur(12px);
+  transition:
+    opacity 800ms var(--landing-ease),
+    transform 800ms var(--landing-ease),
+    filter 800ms var(--landing-ease);
+}
+
+.landing-flow-layer.is-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+.landing-light-streak {
+  position: absolute;
+  inset: -20%;
+  opacity: 0.55;
+  background:
+    linear-gradient(105deg, transparent 35%, oklch(0.62 0.24 291 / 0.24) 46%, oklch(0.66 0.18 238 / 0.18) 52%, transparent 63%),
+    radial-gradient(circle at 50% 50%, oklch(0.55 0.2 291 / 0.18), transparent 34rem);
+  animation: landing-streak 9s var(--landing-ease) infinite alternate;
+}
+
+.landing-magnetic {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-magnetic::before {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255, 255, 255, 0.42), transparent 26%);
+  opacity: 0;
+  transition: opacity 600ms var(--landing-ease), transform 600ms var(--landing-ease);
+}
+
+.landing-magnetic:hover::before {
+  opacity: 1;
+  transform: translateX(18%);
+}
+
+@keyframes landing-word-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+@keyframes landing-streak {
+  from {
+    transform: translate3d(-8%, -2%, 0) rotate(-3deg);
+  }
+  to {
+    transform: translate3d(8%, 4%, 0) rotate(4deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .landing-feature-card:hover {
+    transform: translateY(-8px);
+  }
+
+  .landing-flow-device {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal,
+  .landing-word,
+  .landing-screen,
+  .landing-feature-card,
+  .landing-flow-layer,
+  .landing-light-streak,
+  .landing-hero-stage > div {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .landing-reveal,
+  .landing-word,
+  .landing-flow-layer.is-active {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .landing-cursor {
+    display: none;
+  }
+}
