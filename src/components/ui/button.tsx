@@ -23,11 +23,11 @@ const buttonVariants = cva(
         link: "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
         /** Uses CSS vars from [data-dashboard-skin] (dashboard layout only). */
         dash:
-          "bg-[var(--dash-accent)] text-[var(--dash-accent-fg)] shadow-[0_18px_48px_-28px_oklch(0.35_0.08_200/0.35)] hover:bg-[var(--dash-accent-hover)]",
+          "bg-[var(--dash-accent)] text-[var(--dash-accent-fg)] shadow-[var(--dash-shadow-active)] hover:bg-[var(--dash-accent-hover)] active:scale-[0.97]",
         dashOutline:
-          "border border-[var(--dash-border)] bg-[var(--dash-surface)] text-[var(--dash-text)] shadow-none hover:bg-[var(--dash-surface-elevated)] hover:text-[var(--dash-text)]",
+          "border border-[var(--dash-border)] bg-[var(--dash-surface)] text-[var(--dash-text)] shadow-none hover:bg-[var(--dash-surface-elevated)] hover:text-[var(--dash-text)] active:scale-[0.97]",
         dashGhost:
-          "text-[var(--dash-muted)] hover:bg-[var(--dash-nav-item-hover-bg)] hover:text-[var(--dash-text)]",
+          "text-[var(--dash-muted)] hover:bg-[var(--dash-nav-item-hover-bg)] hover:text-[var(--dash-text)] font-semibold tracking-tight active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-4 py-2",

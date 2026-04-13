@@ -86,26 +86,26 @@ function StatCard({
   loading: boolean;
 }) {
   return (
-    <div className="rez-bento-card flex flex-col gap-4 p-5">
+    <div className="rez-bento-card flex flex-col gap-4 p-6 transition-transform hover:scale-[1.01]">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--dash-muted)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60" style={{ color: "var(--dash-muted)" }}>
             {label}
           </p>
-          <p className="mt-0.5 text-[11px]" style={{ color: "var(--dash-muted)" }}>
+          <p className="mt-0.5 text-[11px] font-medium opacity-80" style={{ color: "var(--dash-muted)" }}>
             {sub}
           </p>
         </div>
-        <div className="dash-icon-circle h-8 w-8 shrink-0">
-          <Icon className="h-3.5 w-3.5" />
+        <div className="dash-icon-circle h-9 w-9 shrink-0">
+          <Icon className="h-4 w-4" />
         </div>
       </div>
 
       {loading ? (
-        <div className="h-9 w-28 dash-pulse rounded-lg" />
+        <div className="h-10 w-32 dash-pulse rounded-xl" />
       ) : (
         <p
-          className="text-[2.2rem] font-bold tabular-nums leading-none tracking-tight"
+          className="text-[2.5rem] font-bold tabular-nums leading-none tracking-tighter"
           style={{ color: "var(--dash-text)" }}
         >
           {value}
@@ -169,11 +169,12 @@ export function RezAIOverview() {
     <div className="space-y-3">
 
       {/* ── Greeting ────────────────────────────────────────────────── */}
-      <div className="rez-bento-card px-6 py-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rez-bento-card relative px-6 py-6 sm:py-8 overflow-hidden">
+        <div className="dash-mesh opacity-30" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p
-              className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+              className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-80"
               style={{ color: "var(--dash-muted)" }}
             >
               {new Date().toLocaleDateString("en-US", {
@@ -183,26 +184,26 @@ export function RezAIOverview() {
               })}
             </p>
             <h1
-              className="mt-1.5 text-2xl font-semibold tracking-tight sm:text-3xl"
+              className="mt-2 text-3xl font-bold tracking-tighter sm:text-4xl"
               style={{ color: "var(--dash-text)" }}
             >
               {greet()},{" "}
-              <span style={{ color: "var(--rez-glow)" }}>
+              <span className="opacity-90" style={{ color: "var(--rez-glow)" }}>
                 {loading ? "…" : businessName.split(" ")[0]}.
               </span>
             </h1>
           </div>
 
           <div
-            className="flex shrink-0 items-center gap-2.5 rounded-full px-4 py-2 text-sm"
+            className="flex shrink-0 items-center gap-2.5 rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wider"
             style={{
               background: "var(--rez-highlight)",
               border: "1px solid var(--rez-glow-dim)",
-              color: "var(--dash-text-secondary)",
+              color: "var(--dash-text)",
             }}
           >
             <span className="rez-pulse" />
-            <span className="font-medium">Rez is online</span>
+            <span>Rez Online</span>
           </div>
         </div>
       </div>
@@ -211,28 +212,28 @@ export function RezAIOverview() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard
           label="Revenue"
-          sub="last 30 days"
+          sub="30d gross"
           value={loading ? "—" : `$${(data?.revenue ?? 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`}
           icon={DollarSign}
           loading={loading}
         />
         <StatCard
           label="Confirmed"
-          sub="last 30 days"
+          sub="30d volume"
           value={loading ? "—" : String(data?.confirmed_bookings ?? 0)}
           icon={CheckCircle2}
           loading={loading}
         />
         <StatCard
           label="Pending"
-          sub="awaiting action"
+          sub="active leads"
           value={loading ? "—" : String(data?.pending_bookings ?? 0)}
           icon={Clock}
           loading={loading}
         />
         <StatCard
           label="Upcoming"
-          sub="next 7 days"
+          sub="7d schedule"
           value={loading ? "—" : String(upcoming.length)}
           icon={CalendarDays}
           loading={loading}
@@ -240,74 +241,74 @@ export function RezAIOverview() {
       </div>
 
       {/* ── Bottom grid ─────────────────────────────────────────────── */}
-      <div className="grid gap-3 xl:grid-cols-[1fr_320px]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_300px]">
 
         {/* Upcoming appointments */}
-        <div className="rez-bento-card flex flex-col" style={{ minHeight: 320 }}>
+        <div className="rez-bento-card flex flex-col" style={{ minHeight: 400 }}>
           <div
-            className="flex items-center justify-between px-5 py-4"
+            className="flex items-center justify-between px-6 py-5"
             style={{ borderBottom: "1px solid var(--dash-divider)" }}
           >
             <div className="flex items-center gap-2.5">
               <div className="dash-icon-circle h-8 w-8">
                 <CalendarDays className="h-3.5 w-3.5" />
               </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
-                Upcoming appointments
+              <p className="text-sm font-bold tracking-tight" style={{ color: "var(--dash-text)" }}>
+                Upcoming Schedule
               </p>
             </div>
             <Link
               href="/dashboard/bookings"
-              className="flex items-center gap-1 text-[11px] font-semibold"
+              className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider transition-opacity hover:opacity-70"
               style={{ color: "var(--dash-muted)" }}
             >
-              All <ArrowRight className="h-3 w-3" />
+              Full Calendar <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
 
-          <div className="flex-1 overflow-auto px-4 py-3">
+          <div className="flex-1 overflow-auto px-6 py-5">
             {loading ? (
-              <div className="space-y-3 pt-1">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-12 dash-pulse rounded-lg" />
+              <div className="space-y-4 pt-1">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-14 dash-pulse rounded-xl" />
                 ))}
               </div>
             ) : byDay.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 py-14">
-                <CalendarDays className="h-8 w-8 opacity-20" style={{ color: "var(--dash-muted)" }} />
-                <p className="text-sm" style={{ color: "var(--dash-muted)" }}>
-                  No upcoming appointments
+              <div className="flex flex-col items-center justify-center gap-2 py-20">
+                <CalendarDays className="h-10 w-10 opacity-10" style={{ color: "var(--dash-muted)" }} />
+                <p className="text-sm font-medium" style={{ color: "var(--dash-muted)" }}>
+                  Your schedule is clear
                 </p>
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-8">
                 {byDay.map(({ label, items }) => (
                   <div key={label}>
                     <p
-                      className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em]"
+                      className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] opacity-60"
                       style={{ color: "var(--dash-muted)" }}
                     >
                       {label}
                     </p>
                     <div className="relative">
                       <div
-                        className="absolute bottom-2 left-[3.25rem] top-2 w-px"
+                        className="absolute bottom-2 left-[3.25rem] top-2 w-px opacity-30"
                         style={{ background: "var(--dash-divider)" }}
                       />
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {items.map((b) => {
                           const now = isNow(b.starts_at);
                           const past = isPast(b.starts_at);
                           return (
                             <div
                               key={b.id}
-                              className="relative flex items-center gap-3 rounded-lg px-2 py-2"
+                              className="relative flex items-center gap-4 rounded-xl px-2 py-3 transition-colors hover:bg-[var(--rez-highlight)]"
                               style={{
                                 background: now ? "var(--rez-highlight)" : "transparent",
                               }}
                             >
                               <span
-                                className="w-12 shrink-0 text-right font-mono text-[10px] font-semibold tabular-nums"
+                                className="w-12 shrink-0 text-right font-mono text-[11px] font-bold tabular-nums tracking-tighter"
                                 style={{
                                   color: now
                                     ? "var(--rez-glow)"
@@ -316,40 +317,39 @@ export function RezAIOverview() {
                                     : "var(--dash-text-secondary)",
                                 }}
                               >
-                                {fmtTime(b.starts_at)}
+                                {fmtTime(b.starts_at).replace(":00", "").toLowerCase()}
                               </span>
                               <div
-                                className="relative z-10 h-2 w-2 shrink-0 rounded-full"
+                                className="relative z-10 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-[var(--dash-surface-elevated)]"
                                 style={{
                                   background: now
                                     ? "var(--rez-online)"
                                     : past
-                                    ? "var(--dash-muted)"
+                                    ? "var(--dash-border)"
                                     : "var(--dash-border-strong)",
-                                  boxShadow: now ? "0 0 6px var(--rez-online)" : "none",
+                                  boxShadow: now ? "0 0 10px var(--rez-online)" : "none",
                                 }}
                               />
                               <div className="min-w-0 flex-1">
                                 <p
-                                  className="truncate text-[13px] font-semibold"
+                                  className="truncate text-sm font-bold tracking-tight"
                                   style={{ color: past ? "var(--dash-muted)" : "var(--dash-text)" }}
                                 >
                                   {b.guest_name}
                                 </p>
-                                <p className="truncate text-[11px]" style={{ color: "var(--dash-muted)" }}>
+                                <p className="truncate text-[11px] font-medium opacity-70" style={{ color: "var(--dash-muted)" }}>
                                   {b.services?.name ?? "Appointment"}
                                 </p>
                               </div>
                               {now && (
                                 <span
-                                  className="shrink-0 rounded-full px-2 py-px text-[9px] font-semibold uppercase tracking-wide"
+                                  className="shrink-0 rounded-full px-2 py-px text-[9px] font-bold uppercase tracking-widest"
                                   style={{
-                                    background: "var(--rez-highlight)",
-                                    color: "var(--rez-glow)",
-                                    border: "1px solid var(--rez-glow-dim)",
+                                    background: "var(--dash-accent)",
+                                    color: "var(--dash-accent-fg)",
                                   }}
                                 >
-                                  now
+                                  LIVE
                                 </span>
                               )}
                             </div>
@@ -362,88 +362,65 @@ export function RezAIOverview() {
               </div>
             )}
           </div>
-
-          {slug && (
-            <div
-              className="flex items-center justify-between px-5 py-3"
-              style={{ borderTop: "1px solid var(--dash-divider)" }}
-            >
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5" style={{ color: "var(--rez-glow)" }} />
-                <p className="text-[11px]" style={{ color: "var(--dash-muted)" }}>
-                  <span style={{ color: "var(--dash-text-secondary)", fontWeight: 600 }}>
-                    {data?.total_bookings ?? 0}
-                  </span>{" "}
-                  total bookings last 30 days
-                </p>
-              </div>
-              <Link
-                href={`/book/${slug}`}
-                target="_blank"
-                className="flex items-center gap-1 text-[11px] font-semibold"
-                style={{ color: "var(--dash-muted)" }}
-              >
-                Booking page <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          )}
         </div>
 
-        {/* Quick links */}
+        {/* Quick links & Context */}
         <div className="flex flex-col gap-3">
-          <div className="rez-bento-card p-5">
-            <div className="flex items-center gap-2.5 mb-4">
+          <div className="rez-bento-card p-6">
+            <div className="flex items-center gap-2.5 mb-5">
               <div className="dash-icon-circle h-8 w-8">
-                <Bot className="h-3.5 w-3.5" />
+                <Bot className="h-4 w-4" />
               </div>
-              <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
-                Quick access
+              <p className="text-sm font-bold tracking-tight" style={{ color: "var(--dash-text)" }}>
+                Operations
               </p>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <QuickLink
                 href="/dashboard/inbox"
                 icon={Inbox}
                 label="DM Inbox"
-                sub="View AI-handled conversations"
+                sub="AI Conversations"
               />
               <QuickLink
                 href="/dashboard/bookings"
                 icon={CalendarDays}
                 label="Bookings"
-                sub="Review and manage appointments"
+                sub="Management"
               />
               <QuickLink
                 href="/dashboard/services"
                 icon={Scissors}
                 label="Services"
-                sub="Update your menu and prices"
+                sub="Menu Editor"
               />
             </div>
           </div>
 
-          <div
-            className="rez-bento-card p-5"
-          >
-            <div className="flex items-center gap-2 mb-3">
+          <div className="rez-bento-card relative p-6 overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-5">
+              <MessageCircle className="h-24 w-24" />
+            </div>
+            <div className="flex items-center gap-2 mb-4 relative z-10">
               <MessageCircle className="h-4 w-4" style={{ color: "var(--rez-glow)" }} />
-              <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
-                Instagram DMs
+              <p className="text-sm font-bold tracking-tight" style={{ color: "var(--dash-text)" }}>
+                Agent Intelligence
               </p>
             </div>
-            <p className="text-[12px] leading-relaxed" style={{ color: "var(--dash-muted)" }}>
-              Rez intercepts inbound DMs and handles booking conversations automatically — no manual replies needed.
+            <p className="text-[12px] leading-relaxed font-medium relative z-10" style={{ color: "var(--dash-muted)" }}>
+              Rez is currently intercepts inbound Instagram DMs, handling booking intent, and closing gaps in your schedule automatically.
             </p>
             <Link
               href="/dashboard/inbox"
-              className="mt-3 flex items-center gap-1 text-[12px] font-semibold"
+              className="mt-4 flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider relative z-10 transition-transform hover:translate-x-1"
               style={{ color: "var(--rez-glow)" }}
             >
-              Open inbox <ArrowRight className="h-3 w-3" />
+              Go to Inbox <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
       </div>
+
     </div>
   );
 }

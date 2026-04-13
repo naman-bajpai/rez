@@ -1,60 +1,61 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  Bot,
-  Send,
-  X,
-  Loader2,
-  Sparkles,
-  Trash2,
-  ChevronDown,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bot, Send, X, Loader2, Sparkles, Trash2 } from "lucide-react";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-const QUICK_COMMANDS = [
+const SUGGESTIONS = [
   "Show today's bookings",
-  "Confirm all pending bookings",
+  "Confirm all pending",
   "What's my revenue this month?",
-  "Block off next Monday",
-  "Show upcoming appointments",
+  "Set hours Mon–Fri 9am–6pm",
 ];
 
-function ChatBubble({ msg }: { msg: Message }) {
-  const isUser = msg.role === "user";
+/* ── Dot loader ── */
+function Dots() {
   return (
-    <div className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
-      {!isUser && (
-        <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-          style={{ background: "var(--rez-highlight)", border: "1px solid var(--rez-glow-dim)" }}
-        >
-          <Bot className="h-3.5 w-3.5" style={{ color: "var(--rez-glow)" }} />
-        </div>
-      )}
+    <div className="flex items-center gap-1 px-1 py-0.5">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="inline-block h-[5px] w-[5px] rounded-full"
+          style={{
+            background: "var(--dash-muted)",
+            animation: `rez-dot 1.2s ease-in-out ${i * 0.18}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── Single message bubble ── */
+function Bubble({ msg }: { msg: Message }) {
+  const user = msg.role === "user";
+  return (
+    <div className={`flex w-full ${user ? "justify-end" : "justify-start"}`}>
       <div
-        className="max-w-[82%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed"
+        className="max-w-[78%] rounded-2xl px-3.5 py-2 text-[13px] leading-[1.6]"
         style={
-          isUser
+          user
             ? {
                 background: "var(--dash-accent)",
                 color: "var(--dash-accent-fg)",
-                borderBottomRightRadius: "6px",
+                borderBottomRightRadius: 4,
               }
             : {
                 background: "var(--dash-surface-elevated)",
                 color: "var(--dash-text)",
                 border: "1px solid var(--dash-border)",
-                borderBottomLeftRadius: "6px",
+                borderBottomLeftRadius: 4,
               }
         }
       >
-        {msg.content.split("\n").map((line, i) => (
+        {msg.content.split("\n").map((l, i, arr) => (
           <span key={i}>
-            {line}
-            {i < msg.content.split("\n").length - 1 && <br />}
+            {l}
+            {i < arr.length - 1 && <br />}
           </span>
         ))}
       </div>
@@ -62,85 +63,57 @@ function ChatBubble({ msg }: { msg: Message }) {
   );
 }
 
-function ThinkingBubble() {
-  return (
-    <div className="flex gap-2.5">
-      <div
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-        style={{ background: "var(--rez-highlight)", border: "1px solid var(--rez-glow-dim)" }}
-      >
-        <Bot className="h-3.5 w-3.5" style={{ color: "var(--rez-glow)" }} />
-      </div>
-      <div
-        className="flex items-center gap-1 rounded-2xl px-4 py-3"
-        style={{
-          background: "var(--dash-surface-elevated)",
-          border: "1px solid var(--dash-border)",
-          borderBottomLeftRadius: "6px",
-        }}
-      >
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="h-1.5 w-1.5 rounded-full"
-            style={{
-              background: "var(--dash-muted)",
-              animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
+/* ── Main component ── */
 export function DashboardAIChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  /* scroll to bottom whenever messages change */
   useEffect(() => {
-    if (open) {
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    }
-  }, [messages, open]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
+  /* focus input when panel opens */
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 150);
+    if (open) setTimeout(() => textareaRef.current?.focus(), 200);
   }, [open]);
+
+  /* reset textarea height helper */
+  function resetHeight(el: HTMLTextAreaElement) {
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 128) + "px";
+  }
 
   const send = useCallback(
     async (text?: string) => {
       const content = (text ?? input).trim();
       if (!content || loading) return;
 
-      const next: Message[] = [...messages, { role: "user", content }];
-      setMessages(next);
+      const history: Message[] = [...messages, { role: "user", content }];
+      setMessages(history);
       setInput("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
       setLoading(true);
 
       try {
         const res = await fetch("/api/dashboard-ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: next }),
+          body: JSON.stringify({ messages: history }),
         });
         const data = (await res.json()) as { message?: string; error?: string };
         setMessages([
-          ...next,
-          {
-            role: "assistant",
-            content: data.message ?? data.error ?? "Something went wrong.",
-          },
+          ...history,
+          { role: "assistant", content: data.message ?? data.error ?? "Something went wrong." },
         ]);
       } catch {
-        setMessages([
-          ...next,
-          { role: "assistant", content: "Couldn't reach Rez AI. Check your connection." },
-        ]);
+        setMessages([...history, { role: "assistant", content: "Connection error. Try again." }]);
       } finally {
         setLoading(false);
       }
@@ -148,222 +121,218 @@ export function DashboardAIChat() {
     [input, loading, messages]
   );
 
-  function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  }
-
-  const isEmpty = messages.length === 0;
-
   return (
     <>
-      {/* ── Trigger button (rendered in nav) ── */}
+      {/* ── FAB trigger — fixed, never touches layout ── */}
       <button
         type="button"
+        aria-label="Open Rez AI"
         onClick={() => setOpen(true)}
-        className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all"
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-[13px] font-semibold shadow-lg transition-transform hover:scale-[1.04] active:scale-[0.97]"
         style={{
-          background: "var(--rez-highlight)",
-          border: "1px solid var(--rez-glow-dim)",
-          color: "var(--dash-text)",
+          background: "var(--dash-accent)",
+          color: "var(--dash-accent-fg)",
+          boxShadow: "0 4px 24px -4px oklch(0.38 0.09 180 / 0.45), 0 1px 4px oklch(0 0 0 / 0.12)",
+          display: open ? "none" : "flex",
         }}
       >
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-          style={{ background: "var(--rez-glow-dim)" }}
-        >
-          <Sparkles className="h-4 w-4" style={{ color: "var(--rez-glow)" }} />
-        </div>
-        <div className="min-w-0 flex-1 text-left">
-          <p className="text-[13px] font-semibold" style={{ color: "var(--dash-text)" }}>
-            Ask Rez AI
-          </p>
-          <p className="text-[11px]" style={{ color: "var(--dash-muted)" }}>
-            Commands &amp; queries
-          </p>
-        </div>
-        <span className="rez-pulse shrink-0" />
+        <Sparkles className="h-4 w-4 shrink-0" />
+        Ask Rez AI
       </button>
 
       {/* ── Backdrop ── */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50"
-          style={{ background: "oklch(0 0 0 / 0.25)", backdropFilter: "blur(2px)" }}
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* ── Panel ── */}
       <div
+        aria-hidden
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 z-40 transition-opacity duration-200"
+        style={{
+          background: "oklch(0 0 0 / 0.3)",
+          pointerEvents: open ? "auto" : "none",
+          opacity: open ? 1 : 0,
+        }}
+      />
+
+      {/* ── Chat panel ── */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Rez AI chat"
         className="fixed bottom-0 right-0 top-0 z-50 flex flex-col"
         style={{
-          width: "clamp(320px, 100vw, 460px)",
-          background: "var(--dash-page-bg)",
+          width: "min(440px, 100vw)",
+          background: "var(--dash-surface)",
           borderLeft: "1px solid var(--dash-border)",
-          boxShadow: "-24px 0 80px -24px oklch(0 0 0 / 0.18)",
+          backdropFilter: "blur(24px)",
+          boxShadow: "-12px 0 48px -12px oklch(0 0 0 / 0.2)",
           transform: open ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)",
         }}
       >
         {/* Header */}
         <div
           className="flex shrink-0 items-center gap-3 px-5 py-4"
-          style={{
-            borderBottom: "1px solid var(--dash-divider)",
-            background: "var(--dash-nav-bg)",
-            backdropFilter: "blur(20px)",
-          }}
+          style={{ borderBottom: "1px solid var(--dash-divider)" }}
         >
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
             style={{ background: "var(--rez-highlight)", border: "1px solid var(--rez-glow-dim)" }}
           >
-            <Bot className="h-4.5 w-4.5" style={{ color: "var(--rez-glow)" }} />
+            <Bot className="h-4 w-4" style={{ color: "var(--rez-glow)" }} />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold leading-none" style={{ color: "var(--dash-text)" }}>
               Rez AI
             </p>
-            <p className="text-[11px]" style={{ color: "var(--dash-muted)" }}>
-              Your business command center
+            <p className="mt-0.5 text-[11px]" style={{ color: "var(--dash-muted)" }}>
+              Business command assistant
             </p>
           </div>
-          <div className="flex items-center gap-1">
+
+          <div className="flex items-center gap-0.5">
             {messages.length > 0 && (
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-lg"
+              <button
+                type="button"
+                title="Clear chat"
                 onClick={() => setMessages([])}
-                title="Clear conversation"
+                className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--dash-surface-muted)]"
               >
                 <Trash2 className="h-3.5 w-3.5" style={{ color: "var(--dash-muted)" }} />
-              </Button>
+              </button>
             )}
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 rounded-lg"
+            <button
+              type="button"
+              title="Close"
               onClick={() => setOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--dash-surface-muted)]"
             >
               <X className="h-4 w-4" style={{ color: "var(--dash-muted)" }} />
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-5">
-          {isEmpty ? (
-            <div className="flex h-full flex-col items-center justify-center gap-6 px-2 text-center">
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {messages.length === 0 ? (
+            /* Empty state */
+            <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
               <div>
                 <div
-                  className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-                  style={{
-                    background: "var(--rez-highlight)",
-                    border: "1px solid var(--rez-glow-dim)",
-                  }}
+                  className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl"
+                  style={{ background: "var(--rez-highlight)", border: "1px solid var(--rez-glow-dim)" }}
                 >
-                  <Sparkles className="h-6 w-6" style={{ color: "var(--rez-glow)" }} />
+                  <Sparkles className="h-5 w-5" style={{ color: "var(--rez-glow)" }} />
                 </div>
                 <p className="text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
-                  What can I help with?
+                  What do you need?
                 </p>
-                <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--dash-muted)" }}>
-                  Ask anything about your bookings, schedule,<br />services, or business analytics.
+                <p className="mt-1 text-xs" style={{ color: "var(--dash-muted)" }}>
+                  Manage bookings, hours, and services with plain English.
                 </p>
               </div>
 
-              <div className="w-full space-y-2">
-                {QUICK_COMMANDS.map((cmd) => (
+              <div className="flex w-full flex-wrap gap-2">
+                {SUGGESTIONS.map((s) => (
                   <button
-                    key={cmd}
+                    key={s}
                     type="button"
-                    className="group flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-left text-[13px] transition-all"
+                    onClick={() => send(s)}
+                    className="rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors hover:opacity-80"
                     style={{
                       background: "var(--dash-surface-elevated)",
                       border: "1px solid var(--dash-border)",
                       color: "var(--dash-text-secondary)",
                     }}
-                    onClick={() => send(cmd)}
                   >
-                    <ChevronDown
-                      className="h-3.5 w-3.5 shrink-0 -rotate-90"
-                      style={{ color: "var(--rez-glow)" }}
-                    />
-                    {cmd}
+                    {s}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {messages.map((msg, i) => (
-                <ChatBubble key={i} msg={msg} />
+            <div className="flex flex-col gap-3">
+              {messages.map((m, i) => (
+                <Bubble key={i} msg={m} />
               ))}
-              {loading && <ThinkingBubble />}
+              {loading && (
+                <div className="flex justify-start">
+                  <div
+                    className="rounded-2xl px-3.5 py-2"
+                    style={{
+                      background: "var(--dash-surface-elevated)",
+                      border: "1px solid var(--dash-border)",
+                      borderBottomLeftRadius: 4,
+                    }}
+                  >
+                    <Dots />
+                  </div>
+                </div>
+              )}
               <div ref={bottomRef} />
             </div>
           )}
         </div>
 
-        {/* Input */}
+        {/* Input bar */}
         <div
-          className="shrink-0 px-4 pb-4 pt-3"
+          className="shrink-0 p-4"
           style={{ borderTop: "1px solid var(--dash-divider)" }}
         >
           <div
-            className="flex items-end gap-2 rounded-2xl px-4 py-2"
+            className="flex items-end gap-2 rounded-xl px-3.5 py-2"
             style={{
               background: "var(--dash-input-bg)",
               border: "1px solid var(--dash-border-strong)",
             }}
           >
             <textarea
-              ref={inputRef}
+              ref={textareaRef}
               rows={1}
               value={input}
+              disabled={loading}
+              placeholder="Message Rez AI…"
               onChange={(e) => {
                 setInput(e.target.value);
-                // auto-grow
-                e.target.style.height = "auto";
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                resetHeight(e.target);
               }}
-              onKeyDown={handleKey}
-              placeholder="Message Rez AI…"
-              disabled={loading}
-              className="flex-1 resize-none bg-transparent py-1.5 text-[13px] outline-none placeholder:opacity-50 disabled:opacity-40"
-              style={{ color: "var(--dash-text)", minHeight: "28px", maxHeight: "120px" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              className="flex-1 resize-none bg-transparent py-1 text-[13px] outline-none disabled:opacity-50"
+              style={{
+                color: "var(--dash-text)",
+                minHeight: 24,
+                maxHeight: 128,
+                lineHeight: "1.5",
+              }}
             />
-            <Button
-              size="icon"
+            <button
+              type="button"
               disabled={!input.trim() || loading}
               onClick={() => send()}
-              className="mb-0.5 h-8 w-8 shrink-0 rounded-xl"
-              style={{
-                background: input.trim() && !loading ? "var(--dash-accent)" : "var(--dash-surface-muted)",
-                color: input.trim() && !loading ? "var(--dash-accent-fg)" : "var(--dash-muted)",
-              }}
+              className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-opacity disabled:opacity-30"
+              style={{ background: "var(--dash-accent)", color: "var(--dash-accent-fg)" }}
             >
               {loading ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Send className="h-3.5 w-3.5" />
               )}
-            </Button>
+            </button>
           </div>
-          <p className="mt-1.5 text-center text-[10px]" style={{ color: "var(--dash-muted)" }}>
-            Shift+Enter for new line · Enter to send
+          <p className="mt-2 text-center text-[10px]" style={{ color: "var(--dash-muted)" }}>
+            Enter to send · Shift+Enter for new line
           </p>
         </div>
       </div>
 
       <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-4px); }
+        @keyframes rez-dot {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+          30% { transform: translateY(-3px); opacity: 1; }
         }
       `}</style>
     </>

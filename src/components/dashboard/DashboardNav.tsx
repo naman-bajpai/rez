@@ -47,6 +47,7 @@ export function DashboardNav() {
   }
 
   return (
+    <>
     <aside
       className="sticky top-0 z-40 border-b px-4 py-4 backdrop-blur-2xl sm:px-6 lg:h-[100dvh] lg:border-b-0 lg:border-r lg:px-5 lg:py-6"
       style={{
@@ -109,19 +110,17 @@ export function DashboardNav() {
                 variant={isActive ? "dash" : "dashGhost"}
                 className={cn(
                   "h-11 justify-start rounded-lg px-3 text-sm font-semibold transition active:scale-[0.98]",
-                  isActive && "shadow-[0_18px_50px_-30px_oklch(0.35_0.1_200/0.4)]"
+                  isActive && "shadow-[var(--dash-shadow-active)]"
                 )}
               >
                 <Link href={href}>
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className={cn("h-4 w-4 shrink-0", isActive ? "opacity-100" : "opacity-60")} />
                   {label}
                 </Link>
               </Button>
             );
           })}
         </nav>
-
-        <DashboardAIChat />
 
         <Button
           type="button"
@@ -143,5 +142,7 @@ export function DashboardNav() {
         </div>
       </div>
     </aside>
+    <DashboardAIChat />
+    </>
   );
 }

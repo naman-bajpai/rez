@@ -68,12 +68,12 @@ function ThreadRow({ thread, active, onClick }: { thread: Thread; active: boolea
   return (
     <button
       type="button"
-      className="inbox-client-row w-full text-left"
+      className="inbox-client-row w-full text-left transition-all active:scale-[0.98]"
       data-active={active}
       onClick={onClick}
     >
       <div
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold shadow-sm"
         style={{
           background: "var(--dash-icon-tile)",
           color: "var(--dash-icon-fg)",
@@ -84,23 +84,23 @@ function ThreadRow({ thread, active, onClick }: { thread: Thread; active: boolea
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-1">
-          <p className="truncate text-[13px] font-semibold" style={{ color: "var(--dash-text)" }}>
+          <p className="truncate text-[13px] font-bold tracking-tight" style={{ color: "var(--dash-text)" }}>
             {name}
           </p>
-          <span className="shrink-0 text-[10px]" style={{ color: "var(--dash-muted)" }}>
+          <span className="shrink-0 text-[10px] font-medium opacity-60" style={{ color: "var(--dash-muted)" }}>
             {relTime(thread.updated_at)}
           </span>
         </div>
-        <p className="mt-0.5 truncate text-[11px]" style={{ color: "var(--dash-muted)" }}>
+        <p className="mt-0.5 truncate text-[11px] font-medium opacity-70" style={{ color: "var(--dash-muted)" }}>
           {lastRole === "assistant" ? (
-            <span style={{ color: "var(--rez-glow)", fontWeight: 600 }}>Rez: </span>
+            <span style={{ color: "var(--rez-glow)", fontWeight: 700 }}>Rez: </span>
           ) : null}
           {preview}
         </p>
         {thread.paused && (
           <span
-            className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-px text-[10px] font-semibold"
-            style={{ background: "oklch(0.93 0.06 38/0.85)", color: "oklch(0.42 0.14 38)" }}
+            className="mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+            style={{ background: "oklch(0.95 0.04 40 / 0.8)", color: "oklch(0.4 0.1 40)", border: "1px solid oklch(0.9 0.05 40 / 0.3)" }}
           >
             <Lock className="h-2.5 w-2.5" /> Paused
           </span>

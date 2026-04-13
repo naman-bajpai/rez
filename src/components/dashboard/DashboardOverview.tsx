@@ -116,18 +116,18 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      <div className="dash-page-header dash-page-header--row grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div>
-          <p className="dash-eyebrow">Last 30 days</p>
-          <h1 className="dash-h1 max-w-3xl">Keep the calendar moving.</h1>
-          <p className="dash-subtitle max-w-2xl">
-            Track booked revenue, review the next appointments, and jump into the work that needs
-            attention.
+      <div className="dash-page-header relative overflow-hidden grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="dash-mesh opacity-20" />
+        <div className="relative z-10">
+          <p className="dash-eyebrow font-bold opacity-70">Global Analytics</p>
+          <h1 className="dash-h1 max-w-3xl tracking-tighter">Your business at a glance.</h1>
+          <p className="dash-subtitle max-w-2xl font-medium opacity-80">
+            Monitor real-time revenue, upcoming schedule, and AI-driven growth metrics.
           </p>
         </div>
-        <Button asChild variant="dash" className="h-11 shrink-0 rounded-lg px-5">
+        <Button asChild variant="dash" className="relative z-10 h-11 shrink-0 rounded-xl px-6 font-bold shadow-sm transition-transform active:scale-[0.98]">
           <Link href="/dashboard/services">
-            Add services <ArrowRight className="ml-2 h-4 w-4" />
+            Modify services <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </div>

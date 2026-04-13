@@ -5,6 +5,47 @@
   font-family: var(--dash-font-sans);
 }
 
+/* ——— Studio: 21st dev, ultra-modern monochrome ——— */
+[data-dashboard-skin="studio"] {
+  --dash-page-bg: oklch(0.995 0.002 240);
+  --dash-mesh: radial-gradient(
+      circle at 0% 0%,
+      oklch(0.96 0.01 240 / 0.4),
+      transparent 50%
+    ),
+    radial-gradient(circle at 100% 100%, oklch(0.97 0.01 240 / 0.3), transparent 50%);
+  --dash-nav-bg: oklch(1 0 0 / 0.45);
+  --dash-nav-border: oklch(0.92 0.01 240 / 0.6);
+  --dash-nav-item: oklch(0.4 0.02 240);
+  --dash-nav-item-hover-bg: oklch(0.96 0.01 240 / 0.8);
+  --dash-accent: oklch(0.15 0.02 240);
+  --dash-accent-hover: oklch(0 0 0);
+  --dash-accent-fg: oklch(1 0 0);
+  --dash-surface: oklch(1 0 0 / 0.6);
+  --dash-surface-elevated: oklch(1 0 0 / 0.95);
+  --dash-surface-muted: oklch(0.97 0.005 240 / 0.8);
+  --dash-border: oklch(0.92 0.01 240);
+  --dash-border-strong: oklch(0.85 0.015 240);
+  --dash-text: oklch(0.15 0.02 240);
+  --dash-text-secondary: oklch(0.45 0.02 240);
+  --dash-muted: oklch(0.62 0.015 240);
+  --dash-icon-tile: oklch(0.15 0.02 240 / 0.06);
+  --dash-icon-fg: oklch(0.15 0.02 240);
+  --dash-shadow-card: 0 1px 3px 0 oklch(0 0 0 / 0.01), 0 1px 2px -1px oklch(0 0 0 / 0.01);
+  --dash-shadow-nav: 0 1px 2px 0 oklch(0 0 0 / 0.02);
+  --dash-shadow-active: 0 4px 20px -10px oklch(0 0 0 / 0.2);
+  --dash-input-bg: oklch(1 0 0);
+  --dash-divider: oklch(0.94 0.01 240);
+
+  /* Rez AI Studio overrides */
+  --rez-glow: oklch(0.15 0.02 240);
+  --rez-glow-dim: oklch(0.15 0.02 240 / 0.08);
+  --rez-glow-inner: oklch(1 0 0 / 0.15);
+  --rez-online: oklch(0.45 0.18 145);
+  --rez-online-ring: oklch(0.45 0.18 145 / 0.2);
+  --rez-highlight: oklch(0.15 0.02 240 / 0.03);
+}
+
 /* ——— Lagoon (default): fresh teal / mint operational UI ——— */
 [data-dashboard-skin="lagoon"] {
   --dash-page-bg: oklch(0.972 0.019 185);
@@ -33,6 +74,7 @@
   --dash-icon-fg: oklch(0.35 0.12 280);
   --dash-shadow-card: 0 26px 80px -56px oklch(0.35 0.06 200 / 0.45);
   --dash-shadow-nav: inset 0 1px 0 oklch(1 0 0 / 0.65);
+  --dash-shadow-active: 0 18px 50px -30px oklch(0.35 0.1 200 / 0.4);
   --dash-input-bg: oklch(1 0 0 / 0.92);
   --dash-divider: oklch(0.92 0.015 200 / 0.9);
 }
@@ -61,6 +103,7 @@
   --dash-icon-fg: oklch(0.78 0.15 290);
   --dash-shadow-card: 0 32px 80px -40px oklch(0 0 0 / 0.65);
   --dash-shadow-nav: inset 0 1px 0 oklch(1 0 0 / 0.06);
+  --dash-shadow-active: 0 18px 50px -30px oklch(0 0 0 / 0.5);
   --dash-input-bg: oklch(0.16 0.02 280 / 0.9);
   --dash-divider: oklch(1 0 0 / 0.08);
 }
@@ -89,9 +132,11 @@
   --dash-icon-fg: oklch(0.38 0.1 45);
   --dash-shadow-card: 0 24px 70px -50px oklch(0.4 0.05 55 / 0.25);
   --dash-shadow-nav: inset 0 1px 0 oklch(1 0 0 / 0.85);
+  --dash-shadow-active: 0 18px 50px -30px oklch(0.4 0.1 55 / 0.2);
   --dash-input-bg: oklch(0.99 0.01 85);
   --dash-divider: oklch(0.88 0.02 55 / 0.8);
 }
+
 
 /* Shell & mesh */
 .dash-shell {

@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-export const DASHBOARD_SKINS = ["lagoon", "lunar", "paper"] as const;
+export const DASHBOARD_SKINS = ["studio", "lagoon", "lunar", "paper"] as const;
 export type DashboardSkinId = (typeof DASHBOARD_SKINS)[number];
 
 const STORAGE_KEY = "rez-dashboard-skin";
@@ -22,18 +22,18 @@ type Ctx = {
 const DashboardSkinContext = createContext<Ctx | null>(null);
 
 function readStoredSkin(): DashboardSkinId {
-  if (typeof window === "undefined") return "lagoon";
+  if (typeof window === "undefined") return "studio";
   try {
     const v = localStorage.getItem(STORAGE_KEY) as DashboardSkinId | null;
     if (v && DASHBOARD_SKINS.includes(v)) return v;
   } catch {
     /* ignore */
   }
-  return "lagoon";
+  return "studio";
 }
 
 export function DashboardSkinProvider({ children }: { children: React.ReactNode }) {
-  const [skin, setSkinState] = useState<DashboardSkinId>("lagoon");
+  const [skin, setSkinState] = useState<DashboardSkinId>("studio");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function DashboardSkinProvider({ children }: { children: React.ReactNode 
     <DashboardSkinContext.Provider value={value}>
       <div
         className="dash-root min-h-[100dvh]"
-        data-dashboard-skin={ready ? skin : "lagoon"}
+        data-dashboard-skin={ready ? skin : "studio"}
         suppressHydrationWarning
       >
         {children}

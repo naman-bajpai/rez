@@ -9,6 +9,7 @@ import {
 } from "@/components/dashboard/dashboard-skin-context";
 
 const LABELS: Record<DashboardSkinId, { name: string; hint: string }> = {
+  studio: { name: "Studio", hint: "Modern mono" },
   lagoon: { name: "Lagoon", hint: "Teal & glass" },
   lunar: { name: "Lunar", hint: "Dark & violet" },
   paper: { name: "Paper", hint: "Warm cream" },
