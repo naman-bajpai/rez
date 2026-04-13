@@ -1,5 +1,5 @@
-import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { RezAIOverview } from "@/components/dashboard/RezAIOverview";
 
 export default function DashboardPage() {
-  return <DashboardOverview />;
+  return <RezAIOverview />;
 }

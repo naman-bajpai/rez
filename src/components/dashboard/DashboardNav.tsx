@@ -14,6 +14,7 @@ import {
   LogOut,
   Loader2,
   ExternalLink,
+  Inbox,
 } from "lucide-react";
 import { createAuthClient } from "better-auth/react";
 import { cn } from "@/lib/utils";
@@ -24,11 +25,12 @@ import { DashboardSkinSwitcher } from "@/components/dashboard/DashboardSkinSwitc
 const authClient = createAuthClient();
 
 const nav = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/bookings", label: "Bookings", icon: CalendarDays },
-  { href: "/dashboard/availability", label: "Availability", icon: Clock },
-  { href: "/dashboard/services", label: "Services", icon: Scissors },
-  { href: "/dashboard/clients", label: "Clients", icon: Users },
+  { href: "/dashboard",           label: "Overview",     icon: LayoutDashboard },
+  { href: "/dashboard/inbox",     label: "Inbox",        icon: Inbox           },
+  { href: "/dashboard/bookings",  label: "Bookings",     icon: CalendarDays    },
+  { href: "/dashboard/availability", label: "Availability", icon: Clock        },
+  { href: "/dashboard/services",  label: "Services",     icon: Scissors        },
+  { href: "/dashboard/clients",   label: "Clients",      icon: Users           },
 ];
 
 export function DashboardNav() {

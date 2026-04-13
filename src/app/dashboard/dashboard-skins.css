@@ -270,3 +270,311 @@
     opacity: 0.95;
   }
 }
+
+/* ─── Rez AI Bento ────────────────────────────────────────────── */
+
+[data-dashboard-skin="lagoon"] {
+  --rez-glow: oklch(0.58 0.22 185);
+  --rez-glow-dim: oklch(0.58 0.22 185 / 0.22);
+  --rez-glow-inner: oklch(0.82 0.14 185 / 0.55);
+  --rez-online: oklch(0.52 0.2 145);
+  --rez-online-ring: oklch(0.52 0.2 145 / 0.28);
+  --rez-highlight: oklch(0.62 0.2 185 / 0.08);
+}
+[data-dashboard-skin="lunar"] {
+  --rez-glow: oklch(0.72 0.2 290);
+  --rez-glow-dim: oklch(0.72 0.2 290 / 0.2);
+  --rez-glow-inner: oklch(0.72 0.2 290 / 0.4);
+  --rez-online: oklch(0.62 0.22 145);
+  --rez-online-ring: oklch(0.62 0.22 145 / 0.25);
+  --rez-highlight: oklch(0.72 0.2 290 / 0.1);
+}
+[data-dashboard-skin="paper"] {
+  --rez-glow: oklch(0.52 0.2 45);
+  --rez-glow-dim: oklch(0.52 0.2 45 / 0.18);
+  --rez-glow-inner: oklch(0.68 0.12 45 / 0.45);
+  --rez-online: oklch(0.5 0.2 145);
+  --rez-online-ring: oklch(0.5 0.2 145 / 0.22);
+  --rez-highlight: oklch(0.52 0.2 45 / 0.08);
+}
+
+/* Bento card — 1px border + top-edge glow */
+.rez-bento-card {
+  border-radius: 1rem;
+  border: 1px solid var(--dash-border);
+  border-top-color: var(--rez-glow);
+  background: var(--dash-surface-elevated);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 -1px 10px -1px var(--rez-glow-dim),
+    inset 0 1px 0 var(--rez-glow-inner),
+    var(--dash-shadow-card);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Bento grid */
+.rez-bento-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-areas:
+    "greeting"
+    "dm"
+    "revenue"
+    "calendar";
+}
+@media (min-width: 768px) {
+  .rez-bento-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "greeting greeting"
+      "dm       dm"
+      "revenue  calendar";
+  }
+}
+@media (min-width: 1024px) {
+  .rez-bento-grid {
+    grid-template-columns: 1fr 1fr 272px;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "greeting greeting greeting"
+      "dm       dm       revenue"
+      "dm       dm       calendar";
+  }
+}
+
+.rez-greeting-area { grid-area: greeting; }
+.rez-dm-area       { grid-area: dm; }
+.rez-revenue-area  { grid-area: revenue; }
+.rez-calendar-area { grid-area: calendar; }
+
+/* AI online pulse dot */
+.rez-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rez-online);
+  box-shadow: 0 0 0 0 var(--rez-online-ring);
+  animation: rez-pulse-anim 2.2s ease infinite;
+  flex-shrink: 0;
+}
+@keyframes rez-pulse-anim {
+  0%, 100% { box-shadow: 0 0 0 0 var(--rez-online-ring); }
+  60%       { box-shadow: 0 0 0 6px transparent; }
+}
+
+/* DM entry slide-in */
+@keyframes rez-slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rez-msg-enter {
+  animation: rez-slide-down 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+/* ─── Booking Inbox ────────────────────────────────────────────── */
+
+.inbox-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr 256px;
+  height: calc(100svh - 6rem);
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--dash-border);
+  border-top-color: var(--rez-glow);
+  background: var(--dash-surface-elevated);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 -1px 10px -1px var(--rez-glow-dim),
+    inset 0 1px 0 var(--rez-glow-inner),
+    var(--dash-shadow-card);
+}
+
+@media (max-width: 1023px) {
+  .inbox-shell {
+    grid-template-columns: 200px 1fr;
+    height: calc(100svh - 7rem);
+  }
+  .inbox-right { display: none; }
+}
+
+@media (max-width: 767px) {
+  .inbox-shell {
+    grid-template-columns: 1fr;
+    height: calc(100svh - 6rem);
+  }
+}
+
+.inbox-left {
+  border-right: 1px solid var(--dash-divider);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--dash-surface);
+}
+
+.inbox-center {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.inbox-right {
+  border-left: 1px solid var(--dash-divider);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--dash-surface);
+}
+
+/* Client row in sidebar */
+.inbox-client-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background 0.12s ease;
+  position: relative;
+  margin: 0 0.375rem;
+}
+.inbox-client-row:hover {
+  background: var(--dash-surface-muted);
+}
+.inbox-client-row[data-active="true"] {
+  background: var(--rez-highlight);
+}
+.inbox-client-row[data-active="true"]::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--rez-glow);
+}
+
+/* Status badges */
+.inbox-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.5;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.inbox-badge[data-status="negotiating"] {
+  background: oklch(0.93 0.07 72 / 0.88);
+  color: oklch(0.4 0.15 68);
+  border-color: oklch(0.82 0.09 70 / 0.5);
+}
+.inbox-badge[data-status="payment-pending"] {
+  background: oklch(0.93 0.08 40 / 0.88);
+  color: oklch(0.42 0.17 38);
+  border-color: oklch(0.82 0.1 40 / 0.5);
+}
+.inbox-badge[data-status="confirmed"] {
+  background: oklch(0.89 0.1 145 / 0.88);
+  color: oklch(0.36 0.17 142);
+  border-color: oklch(0.76 0.13 145 / 0.5);
+}
+[data-dashboard-skin="lunar"] .inbox-badge[data-status="negotiating"] {
+  background: oklch(0.26 0.09 70 / 0.8);
+  color: oklch(0.82 0.14 72);
+  border-color: oklch(0.5 0.1 70 / 0.4);
+}
+[data-dashboard-skin="lunar"] .inbox-badge[data-status="payment-pending"] {
+  background: oklch(0.25 0.1 38 / 0.78);
+  color: oklch(0.82 0.15 40);
+  border-color: oklch(0.5 0.12 40 / 0.4);
+}
+[data-dashboard-skin="lunar"] .inbox-badge[data-status="confirmed"] {
+  background: oklch(0.24 0.11 145 / 0.75);
+  color: oklch(0.75 0.19 145);
+  border-color: oklch(0.5 0.16 145 / 0.4);
+}
+
+/* Chat bubbles */
+.inbox-bubble-ai {
+  background: var(--rez-highlight);
+  border: 1px solid var(--rez-glow-dim);
+  color: var(--dash-text);
+  border-radius: 0.875rem;
+  border-top-left-radius: 0.2rem;
+}
+.inbox-bubble-customer {
+  background: var(--dash-surface-muted);
+  border: 1px solid var(--dash-border);
+  color: var(--dash-text);
+  border-radius: 0.875rem;
+  border-top-right-radius: 0.2rem;
+}
+.inbox-bubble-override {
+  background: oklch(0.92 0.06 38 / 0.88);
+  border: 1px solid oklch(0.82 0.09 38 / 0.5);
+  color: oklch(0.36 0.14 38);
+  border-radius: 0.875rem;
+  border-top-left-radius: 0.2rem;
+}
+[data-dashboard-skin="lunar"] .inbox-bubble-override {
+  background: oklch(0.25 0.1 38 / 0.75);
+  border-color: oklch(0.5 0.12 38 / 0.4);
+  color: oklch(0.82 0.14 38);
+}
+
+/* Override active indicator */
+.inbox-override-banner {
+  background: oklch(0.92 0.06 38 / 0.85);
+  border-top: 1px solid oklch(0.82 0.09 38 / 0.5);
+  color: oklch(0.42 0.14 38);
+}
+[data-dashboard-skin="lunar"] .inbox-override-banner {
+  background: oklch(0.22 0.08 38 / 0.8);
+  border-color: oklch(0.48 0.1 38 / 0.4);
+  color: oklch(0.8 0.12 38);
+}
+
+/* Override toggle button */
+.inbox-override-btn {
+  width: 100%;
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: 1px solid oklch(0.8 0.1 22 / 0.5);
+  background: oklch(0.93 0.06 22 / 0.8);
+  color: oklch(0.4 0.15 22);
+  transition: opacity 0.15s;
+}
+.inbox-override-btn:hover { opacity: 0.85; }
+[data-dashboard-skin="lunar"] .inbox-override-btn {
+  background: oklch(0.24 0.09 22 / 0.75);
+  border-color: oklch(0.48 0.12 22 / 0.45);
+  color: oklch(0.8 0.14 22);
+}
+
+/* Scrollbar */
+.inbox-scroll::-webkit-scrollbar { width: 4px; }
+.inbox-scroll::-webkit-scrollbar-track { background: transparent; }
+.inbox-scroll::-webkit-scrollbar-thumb {
+  background: var(--dash-border);
+  border-radius: 2px;
+}
+
+@keyframes inbox-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.inbox-msg-in {
+  animation: inbox-msg-in 0.2s ease forwards;
+}

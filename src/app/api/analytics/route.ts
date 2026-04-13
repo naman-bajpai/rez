@@ -11,8 +11,14 @@ export async function GET(request: Request) {
       const period = searchParams.get("period") ?? "30d";
 
       const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
-      const since = new Date();
-      since.setDate(since.getDate() - days);
+      let since: Date;
+      if (period === "1d") {
+        since = new Date();
+        since.setHours(0, 0, 0, 0);
+      } else {
+        since = new Date();
+        since.setDate(since.getDate() - days);
+      }
       const sinceStr = since.toISOString();
 
       const { data: bookings } = await supabase
