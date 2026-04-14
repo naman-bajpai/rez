@@ -113,16 +113,14 @@ export function Hero3DMock() {
           transition: reduceMotion ? undefined : "none",
         }}
       >
-        {/* Main device shadow-layer */}
         <div
-          className="absolute inset-x-8 top-12 -z-10 h-full rounded-[2.5rem] bg-zinc-200/20 blur-3xl [transform:translateZ(-100px)]"
+          className="absolute inset-x-8 top-12 -z-10 h-full rounded-[2.5rem] bg-zinc-200/50 blur-3xl [transform:translateZ(-100px)]"
           aria-hidden
         />
 
-        {/* Main device */}
         <div className="relative z-10 [transform:translateZ(40px)]">
-          <div className="rounded-[3rem] border border-zinc-200 bg-white p-3 shadow-2xl shadow-zinc-200/50">
-            <div className="rounded-[2.25rem] border border-zinc-100 bg-zinc-50/50 p-8 shadow-inner">
+          <div className="rounded-[3rem] border border-zinc-200 bg-white p-3 shadow-[0_30px_90px_rgba(113,113,122,0.2)]">
+            <div className="rounded-[2.25rem] border border-zinc-100 bg-zinc-50/80 p-8">
               <div className="mb-8 flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">your-brand.rez.app</span>
                 <div className="flex gap-1.5">
@@ -147,16 +145,15 @@ export function Hero3DMock() {
           </div>
         </div>
 
-        {/* Decorative elements */}
         <div
-          className="absolute -right-8 top-1/4 z-20 hidden rounded-2xl border border-zinc-950 bg-zinc-950 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-white shadow-2xl lg:block [transform:translateZ(100px) rotateY(-10deg)]"
+          className={`absolute -right-7 top-1/4 z-20 hidden rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-[10px] font-semibold uppercase tracking-widest text-zinc-700 shadow-lg lg:block [transform:translateZ(100px) rotateY(-10deg)] ${ease}`}
           aria-hidden
         >
           Secure Checkout
         </div>
 
         <div
-          className="absolute -bottom-10 -left-10 z-[5] hidden rounded-3xl border border-zinc-100 bg-white/80 p-6 shadow-2xl backdrop-blur-xl lg:block [transform:translateZ(80px) rotateY(15deg)]"
+          className={`absolute -bottom-10 -left-10 z-[5] hidden rounded-3xl border border-zinc-200 bg-white p-6 shadow-lg lg:block [transform:translateZ(80px) rotateY(15deg)] ${ease}`}
           aria-hidden
         >
           <div className="flex items-center gap-3">
