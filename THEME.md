@@ -11,7 +11,7 @@
 | Dashboard font | `Jost` via `--font-jost` — loaded at weights 300, 400, 500 only |
 | Booking display headings | `Fraunces` (Google Fonts) — editorial serif, booking pages only |
 | Booking body | `DM Sans` (Google Fonts) — booking pages only |
-| Base weight | `300` (light) — default for all dashboard text |
+| Base weight | `400` (regular) — default for all dashboard text |
 | Emphasis weight | `400` (regular) — active nav, headings, important labels |
 | Max weight used | `500` — used extremely sparingly, e.g. stat numbers |
 | **Never use** | `600` (semibold) or `700` (bold) in the dashboard |
@@ -143,17 +143,6 @@ Danger (.bk-btn-del):      bg #FFF2F1 · text red
 - Background: white
 
 ---
-
-## Design Rules
-
-1. **No gradients** on backgrounds — flat colours only
-2. **No glass / backdrop-filter** — clean solid surfaces
-3. **No skin switching** — single theme, no localStorage toggling
-4. **Light purple is the only accent** — `#7C3AED` throughout the dashboard
-5. **Warm terracotta** (`#B86332`) is used only on the customer-facing booking pages
-6. **Geist Sans** everywhere in the dashboard — no serif fonts in admin UI
-7. **Fraunces + DM Sans** only on `/book/[slug]` pages — not loaded in dashboard
-8. All new dashboard components must reference `var(--dash-*)` tokens, not hardcoded colours
 
 ---
 
