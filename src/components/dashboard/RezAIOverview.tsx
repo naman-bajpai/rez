@@ -377,7 +377,7 @@ export function RezAIOverview() {
             </div>
             <div className="space-y-3">
               <QuickLink
-                href="/dashboard/inbox"
+                href="/dashboard/bookings"
                 icon={Inbox}
                 label="DM Inbox"
                 sub="AI Conversations"
@@ -411,7 +411,7 @@ export function RezAIOverview() {
               Rez is currently intercepts inbound Instagram DMs, handling booking intent, and closing gaps in your schedule automatically.
             </p>
             <Link
-              href="/dashboard/inbox"
+              href="/dashboard/bookings"
               className="mt-4 flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider relative z-10 transition-transform hover:translate-x-1"
               style={{ color: "var(--rez-glow)" }}
             >

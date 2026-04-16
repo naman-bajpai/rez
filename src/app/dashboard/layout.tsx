@@ -28,8 +28,7 @@ export default async function DashboardLayout({
   return (
     <DashboardSkinProvider>
       <div className="dash-shell">
-        <div className="dash-mesh" aria-hidden />
-        <div className="relative mx-auto grid min-h-[100dvh] w-full max-w-[1600px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="mx-auto grid min-h-[100dvh] w-full max-w-[1600px] gap-0 lg:grid-cols-[280px_minmax(0,1fr)]">
           <DashboardNav />
           <main className="dash-main min-w-0 px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:py-8">
             <div className="mx-auto w-full max-w-6xl">{children}</div>

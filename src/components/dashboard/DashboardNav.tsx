@@ -32,7 +32,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DashboardSkinSwitcher } from "@/components/dashboard/DashboardSkinSwitcher";
 import { DashboardAIChat } from "@/components/dashboard/DashboardAIChat";
 
 const authClient = createAuthClient();
@@ -99,7 +98,7 @@ export function DashboardNav() {
             </span>
             <span className="min-w-0">
               <span
-                className="block text-base font-semibold tracking-tight"
+                className="block text-base font-normal tracking-wide"
                 style={{ color: "var(--dash-text)" }}
               >
                 ReZ
@@ -115,7 +114,7 @@ export function DashboardNav() {
           asChild
           variant="dashOutline"
           size="sm"
-          className="h-9 shrink-0 rounded-lg px-3 text-xs font-semibold lg:mt-0 lg:w-full"
+          className="h-9 shrink-0 rounded-lg px-3 text-xs font-light lg:mt-0 lg:w-full"
         >
           <Link href="/book" target="_blank">
             <ExternalLink className="h-3.5 w-3.5" />
@@ -137,7 +136,7 @@ export function DashboardNav() {
                 asChild
                 variant={isActive ? "dash" : "dashGhost"}
                 className={cn(
-                  "h-11 justify-start rounded-lg px-3 text-sm font-semibold transition active:scale-[0.98]",
+                  "h-11 justify-start rounded-lg px-3 text-sm font-light tracking-wide transition active:scale-[0.98]",
                   isActive && "shadow-[var(--dash-shadow-active)]"
                 )}
               >
@@ -151,8 +150,6 @@ export function DashboardNav() {
         </nav>
 
         <div className="mt-auto flex flex-col gap-3">
-          <DashboardSkinSwitcher />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -161,14 +158,14 @@ export function DashboardNav() {
               >
                 <Avatar className="h-8 w-8 shrink-0 rounded-lg text-xs">
                   <AvatarFallback
-                    className="rounded-lg text-xs font-semibold"
+                    className="rounded-lg text-xs font-normal"
                     style={{ backgroundColor: "var(--dash-accent)", color: "var(--dash-accent-fg)" }}
                   >
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden min-w-0 flex-1 lg:block">
-                  <span className="block truncate text-sm font-semibold" style={{ color: "var(--dash-text)" }}>
+                  <span className="block truncate text-sm font-light" style={{ color: "var(--dash-text)" }}>
                     {userName ?? "Account"}
                   </span>
                   <span className="block truncate text-xs" style={{ color: "var(--dash-muted)" }}>

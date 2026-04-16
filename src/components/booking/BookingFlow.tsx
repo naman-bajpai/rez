@@ -1,10 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,13 +10,13 @@ import {
   Loader2,
   Mail,
   User,
-  Sparkles,
   ListChecks,
   RefreshCw,
   CalendarDays,
   CalendarX,
   DollarSign,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,15 +64,13 @@ type GuestBooking = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_SHORT = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTHS = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
 ];
 
-function toIsoDate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+function toIsoDate(d: Date) { return d.toISOString().slice(0, 10); }
 
 function buildCalendarDays(year: number, month: number): (number | null)[] {
   const firstDow = new Date(year, month, 1).getDay();
@@ -110,6 +104,237 @@ function getTwoWeeksRange() {
   return { dateFrom: toIsoDate(today), dateTo: toIsoDate(out) };
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const BK_STYLES = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+  .bk {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --c-bg: #F5F1EA;
+    --c-surface: #FFFFFF;
+    --c-text: #1A1614;
+    --c-sub: #7C736D;
+    --c-muted: #ABA39D;
+    --c-border: #E4DDD4;
+    --c-divider: #EDE8E2;
+    --c-accent: #B86332;
+    --c-accent-soft: #FBF0E9;
+    --c-accent-ring: rgba(184,99,50,0.14);
+    --c-green: #1A7A4A;
+    --c-green-soft: #EDFAF3;
+    color: var(--c-text);
+  }
+
+  .bk-serif { font-family: 'Fraunces', Georgia, serif; }
+
+  /* Card */
+  .bk-card {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: 22px;
+    box-shadow: 0 2px 32px -8px rgba(26,22,20,0.10), 0 0 0 0 transparent;
+    padding: 32px;
+  }
+
+  /* Step animation */
+  @keyframes bkIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.995); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .bk-in { animation: bkIn 0.35s cubic-bezier(0.16,1,0.3,1) both; }
+
+  /* Service button */
+  .bk-svc {
+    display: flex; width: 100%; align-items: center; justify-content: space-between;
+    gap: 14px; padding: 18px 20px; border-radius: 14px;
+    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    cursor: pointer; text-align: left; transition: all 0.2s ease;
+  }
+  .bk-svc:hover {
+    border-color: var(--c-accent); background: var(--c-accent-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px -6px var(--c-accent-ring);
+  }
+  .bk-svc:active { transform: scale(0.99); }
+
+  /* Primary button */
+  .bk-btn {
+    width: 100%; height: 52px; border-radius: 14px;
+    background: var(--c-text); color: white;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 0.01em; border: none; cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .bk-btn:hover:not(:disabled) {
+    background: #26201C;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -6px rgba(26,22,20,0.24);
+  }
+  .bk-btn:active:not(:disabled) { transform: scale(0.99); }
+  .bk-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Secondary button */
+  .bk-btn-sec {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 38px; padding: 0 14px; border-radius: 10px;
+    border: 1.5px solid var(--c-border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+    color: var(--c-sub); cursor: pointer; transition: all 0.15s ease;
+  }
+  .bk-btn-sec:hover { border-color: var(--c-text); color: var(--c-text); background: white; }
+  .bk-btn-sec:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Danger button */
+  .bk-btn-del {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 38px; padding: 0 14px; border-radius: 10px;
+    border: 1.5px solid transparent; background: #FFF2F1;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500;
+    color: #BE3A2C; cursor: pointer; transition: all 0.15s ease;
+  }
+  .bk-btn-del:hover { background: #FFE5E3; }
+  .bk-btn-del:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Input */
+  .bk-input {
+    width: 100%; height: 50px; padding: 0 16px;
+    border-radius: 12px; border: 1.5px solid var(--c-border);
+    background: #FAFAF7;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--c-text);
+    outline: none; transition: all 0.15s ease; -webkit-appearance: none;
+  }
+  .bk-input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px var(--c-accent-ring);
+    background: white;
+  }
+  .bk-input::placeholder { color: var(--c-muted); }
+
+  /* OTP */
+  .bk-otp {
+    width: 100%; height: 68px; border-radius: 14px;
+    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    font-family: 'DM Sans', monospace; font-size: 26px; font-weight: 600;
+    letter-spacing: 0.35em; text-align: center; color: var(--c-text);
+    outline: none; transition: all 0.15s ease; -webkit-appearance: none;
+  }
+  .bk-otp:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px var(--c-accent-ring);
+    background: white;
+  }
+
+  /* Calendar cells */
+  .bk-cell {
+    display: flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%;
+    font-size: 13px; position: relative;
+    transition: all 0.15s ease;
+    color: var(--c-muted); font-weight: 400;
+  }
+  .bk-cell.avail { color: var(--c-text); cursor: pointer; }
+  .bk-cell.avail:hover { background: var(--c-accent-soft); color: var(--c-accent); }
+  .bk-cell.today:not(.sel) { font-weight: 700; }
+  .bk-cell.sel { background: var(--c-text) !important; color: white !important; font-weight: 600; }
+  .bk-cell-dot {
+    position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 3px; border-radius: 50%; background: var(--c-accent);
+  }
+
+  /* Slot pills */
+  .bk-slot {
+    padding: 9px 14px; border-radius: 10px;
+    border: 1.5px solid var(--c-border); background: white;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--c-text); cursor: pointer; white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .bk-slot:hover { border-color: var(--c-accent); background: var(--c-accent-soft); color: var(--c-accent); }
+
+  /* Back button */
+  .bk-back {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12.5px; font-weight: 500; color: var(--c-muted);
+    background: none; border: none; cursor: pointer; padding: 0;
+    transition: color 0.15s ease; margin-bottom: 24px;
+  }
+  .bk-back:hover { color: var(--c-text); }
+
+  /* Error */
+  .bk-err {
+    padding: 12px 16px; border-radius: 12px;
+    background: #FFF2F1; border: 1px solid #FECACA;
+    color: #BE3A2C; font-size: 13px; line-height: 1.5;
+  }
+
+  /* Label */
+  .bk-label {
+    display: block; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--c-muted); margin-bottom: 8px;
+  }
+
+  /* Progress segments */
+  .bk-progress { display: flex; gap: 3px; width: 120px; }
+  .bk-seg { height: 2px; flex: 1; border-radius: 2px; transition: background 0.35s ease; }
+  .bk-seg-done { background: var(--c-accent); }
+  .bk-seg-now { background: var(--c-text); }
+  .bk-seg-next { background: var(--c-border); }
+
+  /* Detail row */
+  .bk-detail { display: flex; align-items: flex-start; gap: 10px; }
+  .bk-detail-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--c-divider); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Booking item */
+  .bk-booking {
+    padding: 18px; border-radius: 14px;
+    border: 1.5px solid var(--c-border); background: #FAFAF7;
+  }
+
+  /* Wordmark */
+  .bk-logo {
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 300;
+    font-size: 17px; color: var(--c-muted); letter-spacing: -0.01em;
+  }
+
+  /* Manage link */
+  .bk-manage {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--c-border); background: white;
+    font-size: 12px; font-weight: 500; color: var(--c-sub);
+    cursor: pointer; transition: all 0.15s ease; text-decoration: none;
+  }
+  .bk-manage:hover { border-color: var(--c-text); color: var(--c-text); }
+
+  /* Divider */
+  .bk-line { height: 1px; background: var(--c-divider); margin: 0 -32px; }
+`;
+
+// ─── Step progress bar ────────────────────────────────────────────────────────
+
+const STEP_ORDER: Step[] = ["select-service","guest-info","verify-otp","select-slot","confirm"];
+
+function ProgressBar({ step }: { step: Step }) {
+  const steps: Step[] = ["select-service","guest-info","select-slot","confirm"];
+  const cur = STEP_ORDER.indexOf(step === "verify-otp" ? "guest-info" : step);
+  return (
+    <div className="bk-progress">
+      {steps.map((s, i) => {
+        const idx = STEP_ORDER.indexOf(s);
+        const cls = idx < cur ? "bk-seg bk-seg-done" : idx === cur ? "bk-seg bk-seg-now" : "bk-seg bk-seg-next";
+        return <div key={s} className={cls} />;
+      })}
+    </div>
+  );
+}
+
 // ─── Calendar picker ──────────────────────────────────────────────────────────
 
 function CalendarPicker({
@@ -129,7 +354,6 @@ function CalendarPicker({
     [slots]
   );
 
-  // Start the calendar on the first month that has available slots (or today's month)
   const initialMonth = useMemo(() => {
     if (slots.length === 0) return { year: todayDate.getFullYear(), month: todayDate.getMonth() };
     const first = [...availableDates].sort()[0];
@@ -140,7 +364,6 @@ function CalendarPicker({
 
   const [view, setView] = useState(initialMonth);
 
-  // Compute bounds from slot range
   const firstSlotDate = useMemo(() => [...availableDates].sort()[0] ?? today, [availableDates, today]);
   const lastSlotDate = useMemo(() => [...availableDates].sort().at(-1) ?? today, [availableDates, today]);
 
@@ -156,89 +379,82 @@ function CalendarPicker({
 
   const days = buildCalendarDays(view.year, view.month);
 
-  function prevMonth() {
-    setView((v) => {
-      const d = new Date(v.year, v.month - 1, 1);
-      return { year: d.getFullYear(), month: d.getMonth() };
-    });
-  }
-
-  function nextMonth() {
-    setView((v) => {
-      const d = new Date(v.year, v.month + 1, 1);
-      return { year: d.getFullYear(), month: d.getMonth() };
-    });
-  }
-
   return (
-    <div className="w-full select-none">
-      {/* Month header */}
-      <div className="mb-4 flex items-center justify-between">
+    <div style={{ userSelect: "none" }}>
+      {/* Month nav */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <button
           type="button"
-          onClick={prevMonth}
+          onClick={() => setView(v => { const d = new Date(v.year, v.month - 1, 1); return { year: d.getFullYear(), month: d.getMonth() }; })}
           disabled={!canGoPrev}
-          className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{
+            width: 32, height: 32, borderRadius: "50%",
+            border: "1.5px solid var(--c-border)", background: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: canGoPrev ? "pointer" : "default", opacity: canGoPrev ? 1 : 0.3,
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={e => { if (canGoPrev) (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--c-text)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--c-border)"; }}
         >
-          <ChevronLeft className="h-4 w-4 text-gray-600" />
+          <ChevronLeft style={{ width: 14, height: 14, color: "var(--c-sub)" }} />
         </button>
-        <span className="text-sm font-semibold text-gray-800">
+        <span className="bk-serif" style={{ fontSize: 15, fontWeight: 400, color: "var(--c-text)" }}>
           {MONTHS[view.month]} {view.year}
         </span>
         <button
           type="button"
-          onClick={nextMonth}
+          onClick={() => setView(v => { const d = new Date(v.year, v.month + 1, 1); return { year: d.getFullYear(), month: d.getMonth() }; })}
           disabled={!canGoNext}
-          className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{
+            width: 32, height: 32, borderRadius: "50%",
+            border: "1.5px solid var(--c-border)", background: "white",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: canGoNext ? "pointer" : "default", opacity: canGoNext ? 1 : 0.3,
+            transition: "all 0.15s",
+          }}
+          onMouseEnter={e => { if (canGoNext) (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--c-text)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--c-border)"; }}
         >
-          <ChevronRight className="h-4 w-4 text-gray-600" />
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--c-sub)" }} />
         </button>
       </div>
 
-      {/* Day of week headers */}
-      <div className="mb-1 grid grid-cols-7">
-        {DAYS.map((d) => (
-          <div key={d} className="py-1 text-center text-[11px] font-semibold text-gray-400">
+      {/* Day headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,38px)", gap: "2px 0", marginBottom: 4 }}>
+        {DAYS_SHORT.map(d => (
+          <div key={d} style={{ width: 38, textAlign: "center", fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--c-muted)", textTransform: "uppercase", padding: "4px 0" }}>
             {d}
           </div>
         ))}
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 gap-y-1">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,38px)", gap: "2px 0" }}>
         {days.map((day, idx) => {
-          if (day === null) {
-            return <div key={`blank-${idx}`} />;
-          }
+          if (day === null) return <div key={`b-${idx}`} style={{ width: 38 }} />;
 
-          const iso = `${view.year}-${String(view.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const iso = `${view.year}-${String(view.month + 1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
           const isToday = iso === today;
           const isPast = iso < today;
           const hasSlots = availableDates.has(iso);
           const isSelected = iso === selectedDate;
           const isClickable = hasSlots && !isPast;
 
+          let cls = "bk-cell";
+          if (isSelected) cls += " sel";
+          else if (isClickable) cls += " avail";
+          if (isToday) cls += " today";
+
           return (
-            <div key={iso} className="flex justify-center">
-              <button
-                type="button"
-                disabled={!isClickable}
+            <div key={iso} style={{ display: "flex", justifyContent: "center" }}>
+              <div
+                className={cls}
                 onClick={() => isClickable && onSelectDate(iso)}
-                className={[
-                  "relative flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all",
-                  isSelected
-                    ? "bg-teal-700 text-white shadow-md"
-                    : isClickable
-                    ? "text-gray-800 hover:bg-teal-50 hover:text-teal-700 cursor-pointer"
-                    : "text-gray-300 cursor-default",
-                  isToday && !isSelected ? "ring-2 ring-teal-300 ring-offset-1" : "",
-                ].join(" ")}
               >
                 {day}
-                {hasSlots && !isSelected && (
-                  <span className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-teal-500" />
-                )}
-              </button>
+                {hasSlots && !isSelected && !isPast && <span className="bk-cell-dot" />}
+              </div>
             </div>
           );
         })}
@@ -262,174 +478,40 @@ function TimeSlotsPanel({
 }) {
   if (!date) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-4 py-16 text-center">
-        <CalendarDays className="h-10 w-10 text-gray-200" />
-        <p className="text-sm text-gray-400">Select a date to see available times</p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "40px 0", textAlign: "center" }}>
+        <CalendarDays style={{ width: 28, height: 28, color: "var(--c-border)" }} />
+        <p style={{ fontSize: 13, color: "var(--c-muted)" }}>Pick a date to see open times</p>
       </div>
     );
   }
 
-  const dayLabel = new Date(date + "T12:00:00").toLocaleDateString("en-US", {
-    weekday: "long", month: "long", day: "numeric",
-  });
-
-  const daySlots = slots.filter((s) => s.startsAt.slice(0, 10) === date);
+  const daySlots = slots.filter(s => s.startsAt.slice(0, 10) === date);
+  const dayLabel = new Date(date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
 
   return (
-    <div className="flex h-full flex-col">
-      <p className="mb-4 text-sm font-semibold text-gray-700">{dayLabel}</p>
+    <div>
+      <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--c-muted)", marginBottom: 14 }}>
+        {dayLabel}
+      </p>
       {loading ? (
-        <div className="flex flex-1 items-center justify-center gap-2 text-gray-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm">Loading…</span>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "32px 0", color: "var(--c-muted)" }}>
+          <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
+          <span style={{ fontSize: 13 }}>Loading…</span>
         </div>
       ) : daySlots.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-          <CalendarX className="h-8 w-8 text-gray-200" />
-          <p className="text-sm text-gray-400">No times available on this day</p>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: "32px 0", textAlign: "center" }}>
+          <CalendarX style={{ width: 24, height: 24, color: "var(--c-border)" }} />
+          <p style={{ fontSize: 13, color: "var(--c-muted)" }}>No openings this day</p>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto pr-1 space-y-2">
-          {daySlots.map((slot) => (
-            <button
-              key={slot.startsAt}
-              type="button"
-              onClick={() => onSelect(slot)}
-              className="group w-full rounded-xl border-2 border-teal-600/20 bg-white py-3 text-sm font-semibold text-teal-800 shadow-sm transition-all hover:border-teal-600 hover:bg-teal-600 hover:text-white hover:shadow-md active:scale-[0.98]"
-            >
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, maxHeight: 280, overflowY: "auto", paddingRight: 2 }}>
+          {daySlots.map(slot => (
+            <button key={slot.startsAt} type="button" className="bk-slot" onClick={() => onSelect(slot)}>
               {slot.label}
             </button>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-// ─── Left info sidebar ────────────────────────────────────────────────────────
-
-function InfoPanel({
-  business,
-  service,
-  selectedSlot,
-}: {
-  business: Business;
-  service: Service | null;
-  selectedSlot: TimeSlot | null;
-}) {
-  return (
-    <div className="flex flex-col gap-5 lg:border-r lg:border-gray-100 lg:pr-8">
-      {/* Logo + name */}
-      <div className="flex items-center gap-3 lg:flex-col lg:items-start">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-800 text-teal-50 shadow-lg">
-          <Sparkles className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-base font-bold text-gray-900 lg:text-xl">{business.name}</h1>
-          {business.owner_name && (
-            <p className="text-sm text-gray-400">with {business.owner_name}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Service details */}
-      {service && (
-        <div className="space-y-2.5 rounded-xl bg-gray-50 p-4">
-          <p className="text-sm font-semibold text-gray-800">{service.name}</p>
-          <div className="flex items-center gap-1.5 text-sm text-gray-500">
-            <Clock className="h-3.5 w-3.5 text-teal-600" />
-            {service.duration_mins} minutes
-          </div>
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-800">
-            <DollarSign className="h-3.5 w-3.5 text-teal-600" />
-            {Number(service.price).toFixed(2)}
-          </div>
-          {selectedSlot && (
-            <>
-              <div className="my-1 border-t border-gray-200" />
-              <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                <CalendarDays className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600" />
-                <span>
-                  {formatDate(selectedSlot.startsAt)}
-                  <br />
-                  <span className="font-medium">
-                    {formatTime(selectedSlot.startsAt)} – {formatTime(selectedSlot.endsAt)}
-                  </span>
-                </span>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Powered by */}
-      <p className="mt-auto hidden text-[11px] text-gray-300 lg:block">Powered by Rez</p>
-    </div>
-  );
-}
-
-// ─── Glass card ───────────────────────────────────────────────────────────────
-
-function GlassCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_4px_32px_-8px_rgba(0,0,0,0.08)] ${className}`}>
-      {children}
-    </div>
-  );
-}
-
-// ─── Back button ──────────────────────────────────────────────────────────────
-
-function Back({ onClick, label = "Back" }: { onClick: () => void; label?: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="mb-4 flex items-center gap-1 text-sm text-gray-400 transition hover:text-teal-700"
-    >
-      <ArrowLeft className="h-4 w-4" /> {label}
-    </button>
-  );
-}
-
-// ─── Step progress ────────────────────────────────────────────────────────────
-
-const STEP_ORDER: Step[] = ["select-service", "guest-info", "verify-otp", "select-slot", "confirm"];
-const STEP_LABELS = ["Service", "Your info", "Time", "Confirm"];
-const STEP_DISPLAY: Step[] = ["select-service", "guest-info", "select-slot", "confirm"];
-
-function StepProgress({ step }: { step: Step }) {
-  const currentIdx = STEP_ORDER.indexOf(step);
-  return (
-    <div className="flex items-center justify-center gap-2">
-      {STEP_DISPLAY.map((s, i) => {
-        const sIdx = STEP_ORDER.indexOf(s);
-        const done = sIdx < currentIdx;
-        const active = s === step || (s === "guest-info" && step === "verify-otp");
-        return (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={[
-                "flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold transition-all",
-                done ? "bg-teal-700 text-white" :
-                active ? "border-2 border-teal-700 bg-white text-teal-700" :
-                "bg-gray-100 text-gray-400",
-              ].join(" ")}
-            >
-              {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}
-            </div>
-            <span className={[
-              "text-xs font-medium hidden sm:block",
-              active ? "text-teal-700" : done ? "text-teal-600" : "text-gray-400",
-            ].join(" ")}>
-              {STEP_LABELS[i]}
-            </span>
-            {i < STEP_DISPLAY.length - 1 && (
-              <div className={`h-px w-6 ${done ? "bg-teal-300" : "bg-gray-200"}`} />
-            )}
-          </div>
-        );
-      })}
     </div>
   );
 }
@@ -462,7 +544,6 @@ export function BookingFlow({
 
   const storageKey = `bk_guest_${slug}`;
 
-  // Restore session
   useEffect(() => {
     try {
       const stored = localStorage.getItem(storageKey);
@@ -490,7 +571,6 @@ export function BookingFlow({
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Failed to load slots");
         setSlots(data.slots ?? []);
-        // Auto-select first available date
         const firstDate = (data.slots as TimeSlot[] ?? []).find(Boolean)?.startsAt.slice(0, 10) ?? null;
         setSelectedDate(firstDate);
       } catch (err) {
@@ -519,7 +599,6 @@ export function BookingFlow({
     }
   }, [slug]);
 
-  // Load slots when entering select-slot
   useEffect(() => {
     if (step === "select-slot" && guestSession) loadSlots(guestSession.token);
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -533,22 +612,17 @@ export function BookingFlow({
   };
 
   const handleManageBookings = () => {
-    setSelectedService(null);
-    setSelectedSlot(null);
-    setReschedulingBooking(null);
-    setAuthIntent("manage");
-    setError(null);
+    setSelectedService(null); setSelectedSlot(null); setReschedulingBooking(null);
+    setAuthIntent("manage"); setError(null);
     if (guestSession) { setStep("my-bookings"); loadMyBookings(guestSession.token); }
     else { setStep("guest-info"); }
   };
 
   const handleSendOtp = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch(`/api/book/${slug}/auth`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: guestInfo.email, name: guestInfo.name }),
       });
       const data = await res.json();
@@ -562,12 +636,10 @@ export function BookingFlow({
   };
 
   const handleVerifyOtp = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch(`/api/book/${slug}/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: guestInfo.email, name: guestInfo.name, code: otpCode }),
       });
       const data = await res.json();
@@ -576,8 +648,7 @@ export function BookingFlow({
       setGuestSession(session);
       localStorage.setItem(storageKey, JSON.stringify(session));
       if (authIntent === "manage" || !selectedService) {
-        setStep("my-bookings");
-        loadMyBookings(session.token);
+        setStep("my-bookings"); loadMyBookings(session.token);
       } else {
         setStep("select-slot");
       }
@@ -588,22 +659,13 @@ export function BookingFlow({
     }
   };
 
-  const handleSlotSelect = (slot: TimeSlot) => {
-    setSelectedSlot(slot);
-    setStep("confirm");
-  };
-
   const handleConfirmBooking = async () => {
     if (!selectedSlot || !guestSession || !selectedService) return;
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch(`/api/book/${slug}/booking`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${guestSession.token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${guestSession.token}` },
         body: JSON.stringify({ service_id: selectedService.id, starts_at: selectedSlot.startsAt }),
       });
       const data = await res.json();
@@ -620,8 +682,7 @@ export function BookingFlow({
 
   const handleCancelBooking = async (booking: GuestBooking) => {
     if (!guestSession) return;
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch(`/api/book/${slug}/my-bookings/${booking.id}`, {
         method: "PATCH",
@@ -630,9 +691,9 @@ export function BookingFlow({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to cancel");
-      setMyBookings((prev) => prev.map((b) => (b.id === booking.id ? data.booking : b)));
+      setMyBookings(prev => prev.map(b => b.id === booking.id ? data.booking : b));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to cancel booking");
+      setError(err instanceof Error ? err.message : "Failed to cancel");
     } finally {
       setLoading(false);
     }
@@ -640,20 +701,16 @@ export function BookingFlow({
 
   const handleStartReschedule = async (booking: GuestBooking) => {
     if (!guestSession || !booking.services) return;
-    const service = services.find((s) => s.id === booking.services?.id);
-    if (!service) { setError("That service is no longer available for rescheduling."); return; }
-    setSelectedService(service);
-    setSelectedSlot(null);
-    setSelectedDate(null);
-    setReschedulingBooking(booking);
-    setStep("reschedule-slot");
+    const service = services.find(s => s.id === booking.services?.id);
+    if (!service) { setError("That service is no longer available."); return; }
+    setSelectedService(service); setSelectedSlot(null); setSelectedDate(null);
+    setReschedulingBooking(booking); setStep("reschedule-slot");
     await loadSlots(guestSession.token, booking.id, service);
   };
 
   const handleRescheduleBooking = async (slot: TimeSlot) => {
     if (!guestSession || !reschedulingBooking || !selectedService) return;
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const res = await fetch(`/api/book/${slug}/my-bookings/${reschedulingBooking.id}`, {
         method: "PATCH",
@@ -662,11 +719,8 @@ export function BookingFlow({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to reschedule");
-      setMyBookings((prev) => prev.map((b) => (b.id === reschedulingBooking.id ? data.booking : b)));
-      setReschedulingBooking(null);
-      setSelectedService(null);
-      setSlots([]);
-      setSelectedDate(null);
+      setMyBookings(prev => prev.map(b => b.id === reschedulingBooking.id ? data.booking : b));
+      setReschedulingBooking(null); setSelectedService(null); setSlots([]); setSelectedDate(null);
       setStep("my-bookings");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reschedule");
@@ -676,417 +730,415 @@ export function BookingFlow({
   };
 
   const isCalendarStep = step === "select-slot" || step === "reschedule-slot";
-  const showSidebar = step !== "my-bookings";
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Top bar: logo link + manage bookings */}
-      <div className="flex items-center justify-between">
-        <span className="text-lg font-bold tracking-tight text-teal-800">rez</span>
-        {step === "select-service" && (
-          <button
-            type="button"
-            onClick={handleManageBookings}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition hover:border-teal-200 hover:text-teal-700"
-          >
-            <ListChecks className="h-3.5 w-3.5" /> Manage booking
-          </button>
-        )}
-      </div>
+    <div className="bk">
+      <style>{BK_STYLES}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      {/* Step progress */}
-      {!["my-bookings", "reschedule-slot"].includes(step) && (
-        <StepProgress step={step} />
-      )}
+      {/* Top bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        <span className="bk-logo">rez</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {guestSession && (
+            <span style={{ fontSize: 12, color: "var(--c-sub)", display: "flex", alignItems: "center", gap: 4 }}>
+              <CheckCircle2 style={{ width: 12, height: 12, color: "var(--c-accent)" }} />
+              {guestSession.name}
+            </span>
+          )}
+          {!["my-bookings","reschedule-slot"].includes(step) && step !== "select-service" && (
+            <ProgressBar step={step} />
+          )}
+          {step === "select-service" && (
+            <button type="button" className="bk-manage" onClick={handleManageBookings}>
+              <ListChecks style={{ width: 12, height: 12 }} />
+              My bookings
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Error banner */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="bk-err" style={{ marginBottom: 16 }}>{error}</div>
       )}
 
-      {/* ── STEP: Select service ─────────────────────────────────────────────── */}
+      {/* ── SELECT SERVICE ─────────────────────────────────────────────────── */}
       {step === "select-service" && (
-        <GlassCard>
-          <h2 className="mb-1 text-xl font-bold text-gray-900">{business.name}</h2>
-          {business.owner_name && (
-            <p className="mb-5 text-sm text-gray-400">with {business.owner_name}</p>
-          )}
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-            Choose a service
-          </p>
+        <div key="select-service" className="bk-card bk-in">
+          <div style={{ marginBottom: 28 }}>
+            <h1 className="bk-serif" style={{ fontSize: 28, fontWeight: 400, lineHeight: 1.15, marginBottom: 4 }}>
+              {business.name}
+            </h1>
+            {business.owner_name && (
+              <p style={{ fontSize: 14, color: "var(--c-sub)" }}>with {business.owner_name}</p>
+            )}
+          </div>
+
+          <div className="bk-line" style={{ marginBottom: 24 }} />
+
+          <p className="bk-label">Choose a service</p>
+
           {services.length === 0 ? (
-            <p className="text-sm text-gray-400">No services available yet.</p>
+            <p style={{ fontSize: 14, color: "var(--c-muted)", padding: "16px 0" }}>No services listed yet.</p>
           ) : (
-            <div className="space-y-2">
-              {services.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => handleServiceSelect(s)}
-                  className="group flex w-full items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4 text-left transition-all hover:border-teal-200 hover:bg-teal-50 active:scale-[0.99]"
-                >
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {services.map(s => (
+                <button key={s.id} type="button" className="bk-svc" onClick={() => handleServiceSelect(s)}>
                   <div>
-                    <p className="font-semibold text-gray-900 group-hover:text-teal-800">
+                    <p style={{ fontSize: 15, fontWeight: 600, color: "var(--c-text)", marginBottom: 4 }}>
                       {s.name}
                     </p>
-                    <div className="mt-1 flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="h-3.5 w-3.5" /> {s.duration_mins} min
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12.5, color: "var(--c-sub)" }}>
+                        <Clock style={{ width: 12, height: 12 }} /> {s.duration_mins} min
                       </span>
                       {s.add_ons?.length > 0 && (
-                        <Badge variant="secondary" className="text-[11px]">
+                        <span style={{ fontSize: 11, background: "var(--c-divider)", color: "var(--c-sub)", borderRadius: 6, padding: "2px 7px", fontWeight: 500 }}>
                           +{s.add_ons.length} add-on{s.add_ons.length > 1 ? "s" : ""}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </div>
-                  <span className="text-lg font-bold text-teal-800">
+                  <span style={{ fontSize: 18, fontWeight: 600, color: "var(--c-text)", flexShrink: 0 }}>
                     ${Number(s.price).toFixed(2)}
                   </span>
                 </button>
               ))}
             </div>
           )}
-        </GlassCard>
+        </div>
       )}
 
-      {/* ── STEP: Guest info ─────────────────────────────────────────────────── */}
+      {/* ── GUEST INFO ─────────────────────────────────────────────────────── */}
       {step === "guest-info" && (
-        <GlassCard>
-          <Back onClick={() => setStep("select-service")} />
-          <h2 className="mb-1 text-xl font-bold text-gray-900">
+        <div key="guest-info" className="bk-card bk-in">
+          <button type="button" className="bk-back" onClick={() => setStep("select-service")}>
+            <ArrowLeft style={{ width: 13, height: 13 }} /> Back
+          </button>
+
+          <h2 className="bk-serif" style={{ fontSize: 26, fontWeight: 400, marginBottom: 6 }}>
             {authIntent === "manage" ? "Find your bookings" : "Your details"}
           </h2>
-          <p className="mb-5 text-sm text-gray-400">
+          <p style={{ fontSize: 13.5, color: "var(--c-sub)", marginBottom: 28, lineHeight: 1.5 }}>
             {authIntent === "manage"
-              ? "We'll send a verification code to your email"
-              : "We'll send a code to confirm your booking"}
+              ? "Enter your email — we'll send a quick verification code."
+              : "We'll send you a verification code to confirm."}
           </p>
-          <div className="space-y-4">
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {authIntent === "book" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs font-semibold text-gray-500">Full name</Label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300" />
-                  <Input
-                    id="name"
+              <div>
+                <label className="bk-label">Full name</label>
+                <div style={{ position: "relative" }}>
+                  <User style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--c-muted)" }} />
+                  <input
+                    className="bk-input"
+                    style={{ paddingLeft: 40 }}
                     placeholder="Jane Smith"
-                    className="pl-10 h-11 rounded-xl border-gray-200"
                     value={guestInfo.name}
-                    onChange={(e) => setGuestInfo((p) => ({ ...p, name: e.target.value }))}
+                    onChange={e => setGuestInfo(p => ({ ...p, name: e.target.value }))}
                   />
                 </div>
               </div>
             )}
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs font-semibold text-gray-500">Email address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-300" />
-                <Input
-                  id="email"
+            <div>
+              <label className="bk-label">Email address</label>
+              <div style={{ position: "relative" }}>
+                <Mail style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", width: 15, height: 15, color: "var(--c-muted)" }} />
+                <input
+                  className="bk-input"
+                  style={{ paddingLeft: 40 }}
                   type="email"
                   placeholder="jane@example.com"
-                  className="pl-10 h-11 rounded-xl border-gray-200"
                   value={guestInfo.email}
-                  onChange={(e) => setGuestInfo((p) => ({ ...p, email: e.target.value }))}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && guestInfo.email && (authIntent === "manage" || guestInfo.name))
-                      handleSendOtp();
+                  onChange={e => setGuestInfo(p => ({ ...p, email: e.target.value }))}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && guestInfo.email && (authIntent === "manage" || guestInfo.name)) handleSendOtp();
                   }}
                 />
               </div>
             </div>
-            <Button
-              onClick={handleSendOtp}
-              disabled={!guestInfo.email || (authIntent === "book" && !guestInfo.name) || loading}
-              className="h-12 w-full rounded-xl bg-teal-700 text-base hover:bg-teal-600"
-            >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Send verification code"}
-            </Button>
-          </div>
-        </GlassCard>
-      )}
-
-      {/* ── STEP: Verify OTP ─────────────────────────────────────────────────── */}
-      {step === "verify-otp" && (
-        <GlassCard>
-          <Back onClick={() => setStep("guest-info")} />
-          <h2 className="mb-1 text-xl font-bold text-gray-900">Check your email</h2>
-          <p className="mb-5 text-sm text-gray-400">
-            We sent a 6-digit code to <strong className="text-gray-700">{guestInfo.email}</strong>
-          </p>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="otp" className="text-xs font-semibold text-gray-500">Verification code</Label>
-              <Input
-                id="otp"
-                placeholder="000000"
-                maxLength={6}
-                className="h-14 rounded-xl border-gray-200 text-center font-mono text-2xl tracking-[0.4em]"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                onKeyDown={(e) => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
-              />
-            </div>
-            <Button
-              onClick={handleVerifyOtp}
-              disabled={otpCode.length !== 6 || loading}
-              className="h-12 w-full rounded-xl bg-teal-700 text-base hover:bg-teal-600"
-            >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify & continue"}
-            </Button>
             <button
               type="button"
-              className="w-full text-center text-sm text-gray-400 transition hover:text-teal-700"
+              className="bk-btn"
+              style={{ marginTop: 6 }}
               onClick={handleSendOtp}
+              disabled={!guestInfo.email || (authIntent === "book" && !guestInfo.name) || loading}
             >
-              Didn&apos;t receive it? Resend code
+              {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Send verification code"}
             </button>
           </div>
-        </GlassCard>
+        </div>
       )}
 
-      {/* ── STEP: Select slot (Calendly layout) ──────────────────────────────── */}
+      {/* ── VERIFY OTP ─────────────────────────────────────────────────────── */}
+      {step === "verify-otp" && (
+        <div key="verify-otp" className="bk-card bk-in">
+          <button type="button" className="bk-back" onClick={() => setStep("guest-info")}>
+            <ArrowLeft style={{ width: 13, height: 13 }} /> Back
+          </button>
+
+          <h2 className="bk-serif" style={{ fontSize: 26, fontWeight: 400, marginBottom: 6 }}>
+            Check your inbox
+          </h2>
+          <p style={{ fontSize: 13.5, color: "var(--c-sub)", marginBottom: 28, lineHeight: 1.5 }}>
+            We sent a 6-digit code to <strong style={{ color: "var(--c-text)" }}>{guestInfo.email}</strong>
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label className="bk-label">Verification code</label>
+              <input
+                className="bk-otp"
+                placeholder="——————"
+                maxLength={6}
+                value={otpCode}
+                onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                onKeyDown={e => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
+                autoFocus
+              />
+            </div>
+            <button
+              type="button"
+              className="bk-btn"
+              onClick={handleVerifyOtp}
+              disabled={otpCode.length !== 6 || loading}
+            >
+              {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Verify & continue"}
+            </button>
+            <button
+              type="button"
+              onClick={handleSendOtp}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--c-muted)", textAlign: "center", padding: "4px 0", transition: "color 0.15s" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--c-accent)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--c-muted)")}
+            >
+              Didn&apos;t get it? Resend code
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── SELECT SLOT ────────────────────────────────────────────────────── */}
       {step === "select-slot" && (
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_4px_32px_-8px_rgba(0,0,0,0.08)]">
-          <div className="grid lg:grid-cols-[260px_1fr_220px]">
-            {/* Info sidebar */}
-            <div className="border-b border-gray-100 p-6 lg:border-b-0 lg:border-r">
-              <InfoPanel business={business} service={selectedService} selectedSlot={null} />
-            </div>
-
-            {/* Calendar */}
-            <div className="border-b border-gray-100 p-6 lg:border-b-0 lg:border-r">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Select a date
-              </p>
-              {slotsLoading ? (
-                <div className="flex items-center justify-center gap-2 py-20 text-gray-400">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm">Finding availability…</span>
-                </div>
-              ) : slots.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                  <CalendarDays className="h-10 w-10 text-gray-200" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">No availability in the next 2 weeks</p>
-                    <p className="mt-1 text-xs text-gray-400">Please check back soon.</p>
-                  </div>
-                </div>
-              ) : (
-                <CalendarPicker
-                  slots={slots}
-                  selectedDate={selectedDate}
-                  onSelectDate={setSelectedDate}
-                />
-              )}
-            </div>
-
-            {/* Time slots panel */}
-            <div className="p-6" style={{ minHeight: 400 }}>
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                {selectedDate ? "Available times" : "Select a date"}
-              </p>
-              <TimeSlotsPanel
-                date={selectedDate}
-                slots={slots}
-                onSelect={handleSlotSelect}
-                loading={slotsLoading}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── STEP: Reschedule (same calendar layout) ───────────────────────────── */}
-      {step === "reschedule-slot" && reschedulingBooking && selectedService && (
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_4px_32px_-8px_rgba(0,0,0,0.08)]">
-          <div className="border-b border-gray-100 px-6 py-4">
-            <Back
-              onClick={() => { setReschedulingBooking(null); setSelectedService(null); setSlots([]); setSelectedDate(null); setStep("my-bookings"); }}
-              label="Back to bookings"
-            />
-            <p className="text-xs text-gray-400">
-              Currently: {formatDate(reschedulingBooking.starts_at)} at {formatTime(reschedulingBooking.starts_at)}
-            </p>
-          </div>
-          <div className="grid lg:grid-cols-[260px_1fr_220px]">
-            <div className="border-b border-gray-100 p-6 lg:border-b-0 lg:border-r">
-              <InfoPanel business={business} service={selectedService} selectedSlot={null} />
-            </div>
-            <div className="border-b border-gray-100 p-6 lg:border-b-0 lg:border-r">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Select a new date</p>
-              {slotsLoading ? (
-                <div className="flex items-center justify-center gap-2 py-20 text-gray-400">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm">Finding availability…</span>
-                </div>
-              ) : (
-                <CalendarPicker slots={slots} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-              )}
-            </div>
-            <div className="p-6" style={{ minHeight: 400 }}>
-              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                {selectedDate ? "Available times" : "Select a date"}
-              </p>
-              <TimeSlotsPanel
-                date={selectedDate}
-                slots={slots}
-                onSelect={handleRescheduleBooking}
-                loading={slotsLoading}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── STEP: Confirm ────────────────────────────────────────────────────── */}
-      {step === "confirm" && selectedSlot && selectedService && guestSession && (
-        <GlassCard>
-          <Back onClick={() => setStep("select-slot")} />
-          <h2 className="mb-5 text-xl font-bold text-gray-900">Confirm your booking</h2>
-
-          {/* Summary */}
-          <div className="mb-4 space-y-0 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50">
-            <div className="flex items-center justify-between p-4">
-              <div>
-                <p className="font-semibold text-gray-900">{selectedService.name}</p>
-                <p className="text-sm text-gray-400">{selectedService.duration_mins} min</p>
-              </div>
-              <span className="text-xl font-bold text-teal-800">
+        <div key="select-slot" className="bk-in">
+          {/* Service summary strip */}
+          {selectedService && (
+            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 12, background: "rgba(255,255,255,0.7)", border: "1px solid var(--c-border)" }}>
+              <button type="button" className="bk-back" style={{ margin: 0 }} onClick={() => setStep("select-service")}>
+                <ArrowLeft style={{ width: 13, height: 13 }} />
+              </button>
+              <div style={{ width: 1, height: 16, background: "var(--c-border)" }} />
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: "var(--c-text)" }}>{selectedService.name}</span>
+              <span style={{ fontSize: 13, color: "var(--c-sub)", display: "flex", alignItems: "center", gap: 4 }}>
+                <Clock style={{ width: 12, height: 12 }} /> {selectedService.duration_mins} min
+              </span>
+              <span style={{ marginLeft: "auto", fontSize: 14, fontWeight: 600, color: "var(--c-text)" }}>
                 ${Number(selectedService.price).toFixed(2)}
               </span>
             </div>
-            <div className="space-y-2 p-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CalendarDays className="h-4 w-4 shrink-0 text-teal-600" />
-                {formatDate(selectedSlot.startsAt)}
+          )}
+
+          <div className="bk-card" style={{ padding: 0 }}>
+            {slotsLoading ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "64px 0", color: "var(--c-muted)" }}>
+                <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} />
+                <span style={{ fontSize: 14 }}>Finding availability…</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="h-4 w-4 shrink-0 text-teal-600" />
-                {formatTime(selectedSlot.startsAt)} – {formatTime(selectedSlot.endsAt)}
+            ) : slots.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "64px 32px", textAlign: "center" }}>
+                <CalendarDays style={{ width: 32, height: 32, color: "var(--c-border)" }} />
+                <p style={{ fontSize: 14, fontWeight: 500, color: "var(--c-sub)" }}>No availability in the next 2 weeks</p>
+                <p style={{ fontSize: 13, color: "var(--c-muted)" }}>Check back soon.</p>
               </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0 }} className="bk-cal-grid">
+                <style>{`
+                  @media (min-width: 680px) {
+                    .bk-cal-grid { grid-template-columns: 1fr 1fr !important; }
+                    .bk-cal-divider { display: block !important; }
+                  }
+                `}</style>
+                {/* Calendar */}
+                <div style={{ padding: "28px 28px 24px" }}>
+                  <p className="bk-label" style={{ marginBottom: 18 }}>Select a date</p>
+                  <CalendarPicker slots={slots} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                </div>
+                {/* Divider */}
+                <div className="bk-cal-divider" style={{ display: "none", width: 1, background: "var(--c-divider)", margin: "24px 0" }} />
+                {/* Slots */}
+                <div style={{ padding: "28px 28px 24px", borderTop: "1px solid var(--c-divider)" }} className="bk-slots-panel">
+                  <style>{`
+                    @media (min-width: 680px) {
+                      .bk-slots-panel { border-top: none !important; border-left: 1px solid var(--c-divider); }
+                    }
+                  `}</style>
+                  <TimeSlotsPanel date={selectedDate} slots={slots} onSelect={slot => { setSelectedSlot(slot); setStep("confirm"); }} loading={slotsLoading} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── RESCHEDULE SLOT ────────────────────────────────────────────────── */}
+      {step === "reschedule-slot" && reschedulingBooking && selectedService && (
+        <div key="reschedule-slot" className="bk-in">
+          <div style={{ marginBottom: 16, padding: "12px 16px", borderRadius: 12, background: "rgba(255,255,255,0.7)", border: "1px solid var(--c-border)" }}>
+            <button type="button" className="bk-back" style={{ margin: 0, marginBottom: 6 }} onClick={() => { setReschedulingBooking(null); setSelectedService(null); setSlots([]); setSelectedDate(null); setStep("my-bookings"); }}>
+              <ArrowLeft style={{ width: 13, height: 13 }} /> Back to bookings
+            </button>
+            <p style={{ fontSize: 13, color: "var(--c-sub)" }}>
+              Rescheduling: {formatDate(reschedulingBooking.starts_at)} at {formatTime(reschedulingBooking.starts_at)}
+            </p>
+          </div>
+          <div className="bk-card" style={{ padding: 0 }}>
+            {slotsLoading ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "64px 0", color: "var(--c-muted)" }}>
+                <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} />
+                <span style={{ fontSize: 14 }}>Finding new slots…</span>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr" }} className="bk-cal-grid">
+                <div style={{ padding: "28px 28px 24px" }}>
+                  <p className="bk-label" style={{ marginBottom: 18 }}>Pick a new date</p>
+                  <CalendarPicker slots={slots} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                </div>
+                <div style={{ padding: "28px 28px 24px", borderTop: "1px solid var(--c-divider)" }} className="bk-slots-panel">
+                  <TimeSlotsPanel date={selectedDate} slots={slots} onSelect={handleRescheduleBooking} loading={slotsLoading} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── CONFIRM ────────────────────────────────────────────────────────── */}
+      {step === "confirm" && selectedSlot && selectedService && guestSession && (
+        <div key="confirm" className="bk-card bk-in">
+          <button type="button" className="bk-back" onClick={() => setStep("select-slot")}>
+            <ArrowLeft style={{ width: 13, height: 13 }} /> Back
+          </button>
+
+          <h2 className="bk-serif" style={{ fontSize: 26, fontWeight: 400, marginBottom: 24 }}>
+            Confirm your booking
+          </h2>
+
+          {/* Summary */}
+          <div style={{ borderRadius: 14, border: "1.5px solid var(--c-border)", overflow: "hidden", marginBottom: 24 }}>
+            <div style={{ padding: "16px 20px", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <p style={{ fontSize: 15, fontWeight: 600, color: "var(--c-text)" }}>{selectedService.name}</p>
+                <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{selectedService.duration_mins} min</p>
+              </div>
+              <span style={{ fontSize: 20, fontWeight: 700, color: "var(--c-text)" }}>
+                ${Number(selectedService.price).toFixed(2)}
+              </span>
             </div>
-            <div className="space-y-1.5 p-4">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <User className="h-4 w-4 shrink-0 text-gray-300" />
-                {guestSession.name}
+
+            <div style={{ height: 1, background: "var(--c-divider)" }} />
+
+            <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="bk-detail">
+                <div className="bk-detail-icon">
+                  <CalendarDays style={{ width: 13, height: 13, color: "var(--c-sub)" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--c-text)" }}>{formatDate(selectedSlot.startsAt)}</p>
+                  <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 1 }}>
+                    {formatTime(selectedSlot.startsAt)} – {formatTime(selectedSlot.endsAt)}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Mail className="h-4 w-4 shrink-0 text-gray-300" />
-                {guestSession.email}
+              <div className="bk-detail">
+                <div className="bk-detail-icon">
+                  <User style={{ width: 13, height: 13, color: "var(--c-sub)" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--c-text)" }}>{guestSession.name}</p>
+                  <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 1 }}>{guestSession.email}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <Button
-            onClick={handleConfirmBooking}
-            disabled={loading}
-            className="h-12 w-full rounded-xl bg-teal-700 text-base hover:bg-teal-600"
-          >
+          <button type="button" className="bk-btn" onClick={handleConfirmBooking} disabled={loading}>
             {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} />
             ) : (
-              <>
-                <CheckCircle2 className="h-5 w-5" /> Book appointment
-              </>
+              <><CheckCircle2 style={{ width: 16, height: 16 }} /> Book appointment</>
             )}
-          </Button>
-          <p className="mt-3 text-center text-xs text-gray-400">
-            Confirmation will be sent to {guestSession.email}
+          </button>
+          <p style={{ marginTop: 12, textAlign: "center", fontSize: 12, color: "var(--c-muted)" }}>
+            Confirmation sent to {guestSession.email}
           </p>
-        </GlassCard>
+        </div>
       )}
 
-      {/* ── STEP: My bookings ────────────────────────────────────────────────── */}
+      {/* ── MY BOOKINGS ────────────────────────────────────────────────────── */}
       {step === "my-bookings" && (
-        <GlassCard>
-          <Back onClick={() => { setAuthIntent("book"); setStep("select-service"); }} label="Back to services" />
-          <div className="mb-5 flex items-end justify-between">
+        <div key="my-bookings" className="bk-card bk-in">
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 12 }}>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Your bookings</h2>
-              <p className="text-sm text-gray-400">{guestSession?.email}</p>
+              <button type="button" className="bk-back" style={{ marginBottom: 8 }} onClick={() => { setAuthIntent("book"); setStep("select-service"); }}>
+                <ArrowLeft style={{ width: 13, height: 13 }} /> Services
+              </button>
+              <h2 className="bk-serif" style={{ fontSize: 24, fontWeight: 400 }}>Your bookings</h2>
+              <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{guestSession?.email}</p>
             </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => guestSession && loadMyBookings(guestSession.token)}
-                disabled={loading || !guestSession}
-                className="rounded-lg text-xs"
-              >
-                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 24 }}>
+              <button type="button" className="bk-btn-sec" onClick={() => guestSession && loadMyBookings(guestSession.token)} disabled={loading}>
+                {loading ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : <RefreshCw style={{ width: 13, height: 13 }} />}
                 Refresh
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                size="sm"
                 onClick={() => { setAuthIntent("book"); setSelectedService(null); setStep("select-service"); }}
-                className="rounded-lg bg-teal-700 text-xs hover:bg-teal-600"
+                style={{ height: 38, padding: "0 14px", borderRadius: 10, border: "none", background: "var(--c-text)", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}
               >
-                Book another
-              </Button>
+                + Book new
+              </button>
             </div>
           </div>
 
           {loading && myBookings.length === 0 ? (
-            <div className="flex items-center justify-center gap-3 py-16 text-gray-400">
-              <Loader2 className="h-5 w-5 animate-spin" /> Loading…
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "48px 0", color: "var(--c-muted)" }}>
+              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
+              <span style={{ fontSize: 13 }}>Loading…</span>
             </div>
           ) : myBookings.length === 0 ? (
-            <div className="py-12 text-center">
-              <CalendarDays className="mx-auto mb-3 h-10 w-10 text-gray-200" />
-              <p className="text-sm text-gray-500">No bookings found for this email.</p>
+            <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <CalendarDays style={{ width: 32, height: 32, color: "var(--c-border)", margin: "0 auto 10px" }} />
+              <p style={{ fontSize: 14, color: "var(--c-sub)" }}>No bookings found.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {myBookings.map((booking) => {
-                const modifiable = canModifyBooking(booking);
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {myBookings.map(booking => {
+                const mod = canModifyBooking(booking);
+                const statusColor = booking.status === "confirmed" ? { bg: "#EDFAF3", color: "#1A7A4A" } : booking.status === "pending" ? { bg: "#FFF8EC", color: "#92500F" } : { bg: "var(--c-divider)", color: "var(--c-sub)" };
                 return (
-                  <div
-                    key={booking.id}
-                    className="rounded-xl border border-gray-100 bg-gray-50 p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div key={booking.id} className="bk-booking">
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                       <div>
-                        <p className="font-semibold text-gray-900">{booking.services?.name ?? "Appointment"}</p>
-                        <p className="mt-1 text-sm text-gray-500">
-                          {formatDate(booking.starts_at)} at {formatTime(booking.starts_at)}
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text)" }}>{booking.services?.name ?? "Appointment"}</p>
+                        <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 3 }}>
+                          {formatDate(booking.starts_at)} · {formatTime(booking.starts_at)}
                         </p>
-                        <p className="text-sm text-gray-400">${Number(booking.total_price).toFixed(2)}</p>
+                        <p style={{ fontSize: 13, color: "var(--c-muted)", marginTop: 2 }}>${Number(booking.total_price).toFixed(2)}</p>
                       </div>
-                      <Badge
-                        variant={booking.status === "confirmed" ? "success" : booking.status === "pending" ? "warning" : "secondary"}
-                        className="text-xs"
-                      >
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: statusColor.bg, color: statusColor.color, textTransform: "capitalize", flexShrink: 0, marginTop: 2 }}>
                         {booking.status}
-                      </Badge>
+                      </span>
                     </div>
-                    {modifiable && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleStartReschedule(booking)}
-                          disabled={loading}
-                          className="rounded-lg text-xs"
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" /> Reschedule
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleCancelBooking(booking)}
-                          disabled={loading}
-                          className="rounded-lg text-xs"
-                        >
-                          <CalendarX className="h-3.5 w-3.5" /> Cancel
-                        </Button>
+                    {mod && (
+                      <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                        <button type="button" className="bk-btn-sec" onClick={() => handleStartReschedule(booking)} disabled={loading}>
+                          <RefreshCw style={{ width: 12, height: 12 }} /> Reschedule
+                        </button>
+                        <button type="button" className="bk-btn-del" onClick={() => handleCancelBooking(booking)} disabled={loading}>
+                          <CalendarX style={{ width: 12, height: 12 }} /> Cancel
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1094,11 +1146,13 @@ export function BookingFlow({
               })}
             </div>
           )}
-        </GlassCard>
+        </div>
       )}
 
       {/* Powered by */}
-      <p className="text-center text-[11px] text-gray-300">Powered by Rez</p>
+      <p style={{ textAlign: "center", fontSize: 11, color: "var(--c-border)", marginTop: 16 }}>
+        Powered by Rez
+      </p>
     </div>
   );
 }

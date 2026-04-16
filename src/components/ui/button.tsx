@@ -15,11 +15,11 @@ const buttonVariants = cva(
         destructive:
           "bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] hover:bg-[hsl(var(--destructive))]/90",
         outline:
-          "border border-white/60 bg-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-xl hover:bg-white/72 hover:text-[hsl(var(--accent-foreground))]",
+          "border border-[var(--dash-border,#E4E4E7)] bg-white text-[var(--dash-text,#18181B)] hover:bg-[#F4F4F5]",
         secondary:
           "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))]/80",
         ghost:
-          "hover:bg-white/54 hover:text-[hsl(var(--accent-foreground))]",
+          "hover:bg-[#F4F4F5] hover:text-[hsl(var(--accent-foreground))]",
         link: "text-[hsl(var(--primary))] underline-offset-4 hover:underline",
         /** Uses CSS vars from [data-dashboard-skin] (dashboard layout only). */
         dash:
@@ -27,7 +27,7 @@ const buttonVariants = cva(
         dashOutline:
           "border border-[var(--dash-border)] bg-[var(--dash-surface)] text-[var(--dash-text)] shadow-none hover:bg-[var(--dash-surface-elevated)] hover:text-[var(--dash-text)] active:scale-[0.97]",
         dashGhost:
-          "text-[var(--dash-muted)] hover:bg-[var(--dash-nav-item-hover-bg)] hover:text-[var(--dash-text)] font-semibold tracking-tight active:scale-[0.98]",
+          "text-[var(--dash-muted)] hover:bg-[var(--dash-nav-item-hover-bg)] hover:text-[var(--dash-text)] font-light tracking-wide active:scale-[0.98]",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -7,13 +7,19 @@ export async function sendSms(_to: string, _body: string): Promise<void> {
   // SMS not implemented
 }
 
+/**
+ * Send an Instagram DM via the Meta Graph API.
+ * Pass `pageAccessToken` for per-business tokens (multi-tenant).
+ * Falls back to the global META_PAGE_ACCESS_TOKEN env var.
+ */
 export async function sendInstagramDm(
   recipientId: string,
-  message: string
+  message: string,
+  pageAccessToken?: string
 ): Promise<void> {
-  const token = process.env.META_PAGE_ACCESS_TOKEN;
+  const token = pageAccessToken ?? process.env.META_PAGE_ACCESS_TOKEN;
   if (!token) {
-    console.warn("[sendInstagramDm] META_PAGE_ACCESS_TOKEN not set — skipping send");
+    console.warn("[sendInstagramDm] No page access token available — skipping send");
     return;
   }
 
@@ -37,8 +43,11 @@ export async function sendInstagramDm(
 }
 
 /** Download a media URL from Instagram (requires page token as param) */
-export async function fetchInstagramMediaUrl(mediaId: string): Promise<string | null> {
-  const token = process.env.META_PAGE_ACCESS_TOKEN;
+export async function fetchInstagramMediaUrl(
+  mediaId: string,
+  pageAccessToken?: string
+): Promise<string | null> {
+  const token = pageAccessToken ?? process.env.META_PAGE_ACCESS_TOKEN;
   if (!token) return null;
 
   const res = await fetch(

@@ -2,6 +2,63 @@ import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 import { verifyGuestSession } from "@/lib/server/guest-auth";
 import { createBooking } from "@/lib/server/booking-engine";
+import { getOpenAI } from "@/lib/server/openai";
+
+async function createBookingConversation(params: {
+  bookingId: string;
+  businessId: string;
+  businessName: string;
+  guestName: string;
+  serviceName: string;
+  startsAt: string;
+}) {
+  const supabase = createServiceRoleClient();
+  try {
+    const openai = getOpenAI();
+    const dateLabel = new Date(params.startsAt).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a warm, friendly assistant for ${params.businessName}. Write a brief (2-3 sentence) welcome message to a customer who just booked an appointment. Be enthusiastic but professional. Mention the service and date. End by inviting them to ask any questions.`,
+        },
+        {
+          role: "user",
+          content: `Customer: ${params.guestName}, Service: ${params.serviceName}, Date: ${dateLabel}`,
+        },
+      ],
+      max_tokens: 120,
+      temperature: 0.8,
+    });
+
+    const welcome = completion.choices[0].message.content ??
+      `Hi ${params.guestName}! Your ${params.serviceName} appointment on ${dateLabel} is confirmed. Feel free to message us here if you have any questions!`;
+
+    await supabase.from("booking_conversations").insert({
+      booking_id: params.bookingId,
+      business_id: params.businessId,
+      messages: [
+        {
+          role: "provider",
+          content: welcome,
+          created_at: new Date().toISOString(),
+        },
+      ],
+    });
+  } catch (err) {
+    // Non-fatal — booking was already created successfully
+    console.error("[createBookingConversation]", err);
+  }
+}
 
 /** POST — create booking (auto-confirm in dev if no Stripe) */
 export async function POST(
@@ -33,7 +90,7 @@ export async function POST(
     const supabase = createServiceRoleClient();
     const { data: business } = await supabase
       .from("businesses")
-      .select("id")
+      .select("id, name")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -122,6 +179,16 @@ export async function POST(
       .from("bookings")
       .update({ status: "confirmed", payment_status: "unpaid" })
       .eq("id", booking.id);
+
+    // Kick off post-booking conversation (fire-and-forget)
+    void createBookingConversation({
+      bookingId: booking.id,
+      businessId,
+      businessName: business.name as string,
+      guestName: guest.name,
+      serviceName: service.name as string,
+      startsAt: startsAt.toISOString(),
+    });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     return NextResponse.json({

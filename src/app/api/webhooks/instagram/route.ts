@@ -416,10 +416,10 @@ export async function POST(request: Request) {
 
         const igUserId = sender.id;
 
-        // Look up which Rez business owns this page
+        // Look up which Rez business owns this page (include page token for sending)
         const { data: business } = await supabase
           .from("businesses")
-          .select("id, name, slug")
+          .select("id, name, slug, ig_page_access_token")
           .eq("ig_page_id", pageId)
           .maybeSingle();
 
@@ -484,8 +484,9 @@ export async function POST(request: Request) {
 
         await saveThread(businessId, igUserId, newHistory);
 
-        // Send reply
-        await sendInstagramDm(igUserId, reply);
+        // Send reply using the business's own page access token
+        const pageToken = (business.ig_page_access_token as string | null) ?? undefined;
+        await sendInstagramDm(igUserId, reply, pageToken);
       }
     }
 

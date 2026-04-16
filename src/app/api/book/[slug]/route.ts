@@ -12,7 +12,7 @@ export async function GET(
 
     const { data: business, error: bizErr } = await supabase
       .from("businesses")
-      .select("id, name, slug, owner_name, timezone")
+      .select("id, name, slug, owner_name, timezone, booking_mode")
       .eq("slug", slug)
       .maybeSingle();
 
