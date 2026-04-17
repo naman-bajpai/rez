@@ -10,17 +10,34 @@ import {
   User,
   MessageCircle,
   MessageSquare,
+  Check,
+  Clock,
+  Scissors,
+  ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type StoredMessage = { role: "user" | "assistant"; content: string };
+type StoredMessage =
+  | { role: "user" | "assistant"; content: string; type?: "text" }
+  | { role: "user"; type: "image"; content: string; imageUrl: string }
+  | { role: "assistant"; type: "quote"; content: string; quote: QuoteCard };
+
+type QuoteCard = {
+  service: string;
+  duration: string;
+  price: number;
+  note: string;
+  date: string;
+  time: string;
+};
 
 type Client = {
   id: string;
   name: string;
+  avatar: string; // initials color seed
   email?: string;
   phone?: string;
   avg_spend?: number;
@@ -38,16 +55,19 @@ type Thread = {
   client: Client | null;
 };
 
+// A complete booking confirmation conversation — Maya sends a nail photo,
+// the bot reads it, quotes her, and she confirms.
 const DUMMY_THREADS: Thread[] = [
   {
     id: "demo-thread-1",
     ig_user_id: "17841452000124567",
     paused: false,
-    created_at: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 58).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
     client: {
       id: "demo-client-1",
       name: "Maya Carter",
+      avatar: "purple",
       email: "maya@example.com",
       phone: "+1 (323) 555-0148",
       avg_spend: 145,
@@ -55,41 +75,136 @@ const DUMMY_THREADS: Thread[] = [
       instagram_id: "maya.nails.la",
     },
     messages: [
-      { role: "user", content: "Hey! I want an almond full set with chrome tips. Do you have Friday evening?" },
-      { role: "assistant", content: "Yes, I can help with that. Friday has 5:30 PM and 6:15 PM available." },
-      { role: "user", content: "Perfect. Also can you add 3D charms on two nails?" },
+      {
+        role: "user",
+        type: "text",
+        content: "Hey! Do you have anything open this Friday evening? 🙏",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Hi Maya! Yes — Friday has 5:30 PM and 7:00 PM still open. Which works better for you?",
+      },
+      {
+        role: "user",
+        type: "text",
+        content: "7 PM works. I want to recreate this set, can you do it?",
+      },
+      {
+        role: "user",
+        type: "image",
+        content: "Sent a photo",
+        imageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?fm=jpg&q=80&w=640&auto=format&fit=crop",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Cute set! Based on what I see — almond shape, gel color with chrome powder and two accent nails with foil — here's what I'd quote you:",
+      },
+      {
+        role: "assistant",
+        type: "quote",
+        content: "Quote based on your photo",
+        quote: {
+          service: "Full Set · Gel + Chrome + Foil accents",
+          duration: "1 hr 45 min",
+          price: 83,
+          note: "Price may adjust ±$5 in person depending on nail length.",
+          date: "Friday, Apr 18",
+          time: "7:00 PM",
+        },
+      },
+      {
+        role: "user",
+        type: "text",
+        content: "That works for me! Let's do it 🤩",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Booked! You're confirmed for Friday Apr 18 at 7:00 PM. I'll send a reminder 24 hrs before. See you then 💜",
+      },
     ],
   },
   {
     id: "demo-thread-2",
     ig_user_id: "17841452000998888",
     paused: true,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 16).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 22).toISOString(),
     client: {
       id: "demo-client-2",
       name: "Sofia Nguyen",
+      avatar: "rose",
       email: "sofia@example.com",
       avg_spend: 98,
       last_booked_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 42).toISOString(),
       instagram_id: "sofia.vibes",
     },
     messages: [
-      { role: "user", content: "Can you do this set from the photo I sent?" },
-      { role: "assistant", content: "That design maps closest to Deluxe Gel Art. Estimate: 2h 15m, $120." },
-      { role: "assistant", content: "I paused here so you can confirm final pricing before I proceed." },
+      {
+        role: "user",
+        type: "text",
+        content: "Hi! Can I get a refill next week? My nails are growing out bad 😭",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Of course! When's best for you — weekday or weekend?",
+      },
+      {
+        role: "user",
+        type: "text",
+        content: "Weekday, preferably Tuesday or Wednesday afternoon",
+      },
+      {
+        role: "assistant",
+        type: "quote",
+        content: "Quote for your refill",
+        quote: {
+          service: "Gel Refill · Standard",
+          duration: "1 hr 15 min",
+          price: 58,
+          note: "Includes shape correction and cuticle care.",
+          date: "Tuesday, Apr 22",
+          time: "2:30 PM",
+        },
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "I've paused here — confirm this quote and I'll lock it in for you.",
+      },
     ],
   },
   {
     id: "demo-thread-3",
     ig_user_id: "17841452000777777",
     paused: false,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
     client: null,
     messages: [
-      { role: "user", content: "Do you have anything open tomorrow morning?" },
-      { role: "assistant", content: "Tomorrow I can offer 10:00 AM or 11:30 AM. Which works best?" },
+      {
+        role: "user",
+        type: "text",
+        content: "Hey do you do nail removal only? Like no new set after",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Yes, removal only is available — takes about 30 min. Want me to find you a slot this week?",
+      },
+      {
+        role: "user",
+        type: "text",
+        content: "Yes please, anytime Thursday or Friday morning",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content: "Thursday 10:00 AM or Friday 9:30 AM — both are open. Which one works?",
+      },
     ],
   },
 ];
@@ -112,6 +227,17 @@ function lastMessage(t: Thread): string {
   const msgs = t.messages;
   if (!msgs.length) return "No messages yet";
   return msgs[msgs.length - 1].content;
+}
+
+// Avatar seed → soft color pair
+const AVATAR_COLORS: Record<string, { bg: string; fg: string }> = {
+  purple: { bg: "#EDE9FE", fg: "#6D28D9" },
+  rose:   { bg: "#FFE4E6", fg: "#BE123C" },
+  blue:   { bg: "#DBEAFE", fg: "#1D4ED8" },
+  green:  { bg: "#D1FAE5", fg: "#065F46" },
+};
+function avatarColor(seed?: string) {
+  return AVATAR_COLORS[seed ?? "purple"] ?? AVATAR_COLORS.purple;
 }
 
 // ─── Thread row ───────────────────────────────────────────────────────────────
@@ -166,33 +292,123 @@ function ThreadRow({ thread, active, onClick }: { thread: Thread; active: boolea
   );
 }
 
+// ─── Quote card (sent by bot after reading a photo) ──────────────────────────
+
+function QuoteCardBubble({ q }: { q: QuoteCard }) {
+  return (
+    <div
+      className="w-full max-w-[78%] overflow-hidden rounded-2xl rounded-tl-sm"
+      style={{
+        background: "var(--dash-surface)",
+        border: "1px solid var(--dash-border)",
+        boxShadow: "0 2px 8px -2px rgba(0,0,0,0.08)",
+      }}
+    >
+      {/* Card header */}
+      <div
+        className="flex items-center gap-2 px-4 py-2.5"
+        style={{ background: "var(--dash-accent-soft)", borderBottom: "1px solid var(--dash-border)" }}
+      >
+        <Scissors className="h-3.5 w-3.5" style={{ color: "var(--dash-accent)" }} />
+        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--dash-accent)" }}>
+          Booking quote
+        </p>
+      </div>
+
+      <div className="px-4 py-3 space-y-2.5">
+        {/* Service name */}
+        <p className="text-[13px] font-semibold leading-snug" style={{ color: "var(--dash-text)" }}>
+          {q.service}
+        </p>
+
+        {/* Date + time row */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <Clock className="h-3 w-3" style={{ color: "var(--dash-muted)" }} />
+            <span className="text-[12px]" style={{ color: "var(--dash-text-secondary)" }}>
+              {q.date} · {q.time}
+            </span>
+          </div>
+          <span className="text-[11px]" style={{ color: "var(--dash-muted)" }}>{q.duration}</span>
+        </div>
+
+        {/* Price */}
+        <div className="flex items-end justify-between">
+          <p className="text-[22px] font-bold leading-none" style={{ color: "var(--dash-text)", letterSpacing: "-0.03em" }}>
+            ${q.price}
+          </p>
+          <span
+            className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+            style={{ background: "#DCFCE7", color: "#166534" }}
+          >
+            Estimated
+          </span>
+        </div>
+
+        {/* Note */}
+        <p className="text-[11px] leading-relaxed" style={{ color: "var(--dash-muted)" }}>
+          {q.note}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Chat bubble ─────────────────────────────────────────────────────────────
 
-function Bubble({ msg }: { msg: StoredMessage }) {
-  const isAi = msg.role === "assistant";
+function Bubble({ msg, client }: { msg: StoredMessage; client: Client | null }) {
+  const isCustomer = msg.role === "user";
+  const colors = avatarColor(client?.avatar);
+  const initials = (client?.name ?? "?")[0].toUpperCase();
+
+  // Customer on LEFT, bot on RIGHT
   return (
-    <div className={`flex gap-2.5 ${isAi ? "justify-start" : "justify-end"}`}>
-      {isAi && (
+    <div className={`flex gap-2.5 ${isCustomer ? "justify-start" : "justify-end"}`}>
+      {/* Customer avatar — left side */}
+      {isCustomer && (
         <div
-          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+          style={{ background: colors.bg, color: colors.fg, border: `1.5px solid ${colors.fg}22` }}
+        >
+          {client ? initials : <User className="h-3.5 w-3.5" />}
+        </div>
+      )}
+
+      {/* Message content */}
+      {msg.type === "image" ? (
+        // Image message from customer
+        <div className="max-w-[64%] overflow-hidden rounded-2xl rounded-tl-sm border" style={{ borderColor: "var(--dash-border)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={(msg as { imageUrl: string }).imageUrl}
+            alt="Sent photo"
+            className="block w-full object-cover"
+            style={{ maxHeight: 200 }}
+          />
+          <div className="flex items-center gap-1.5 px-3 py-1.5" style={{ background: "var(--dash-surface-muted)" }}>
+            <ImageIcon className="h-3 w-3" style={{ color: "var(--dash-muted)" }} />
+            <span className="text-[11px]" style={{ color: "var(--dash-muted)" }}>Photo sent</span>
+          </div>
+        </div>
+      ) : msg.type === "quote" ? (
+        <QuoteCardBubble q={(msg as { quote: QuoteCard }).quote} />
+      ) : (
+        <div
+          className={`max-w-[72%] px-3.5 py-2.5 text-[13px] leading-relaxed ${
+            isCustomer ? "inbox-bubble-customer" : "inbox-bubble-ai"
+          }`}
+        >
+          {msg.content}
+        </div>
+      )}
+
+      {/* Bot avatar — right side */}
+      {!isCustomer && (
+        <div
+          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
           style={{ background: "var(--rez-highlight)", border: "1px solid var(--rez-glow-dim)" }}
         >
           <Bot className="h-3.5 w-3.5" style={{ color: "var(--rez-glow)" }} />
-        </div>
-      )}
-      <div
-        className={`max-w-[72%] px-3.5 py-2.5 text-[13px] leading-relaxed ${
-          isAi ? "inbox-bubble-ai" : "inbox-bubble-customer"
-        }`}
-      >
-        {msg.content}
-      </div>
-      {!isAi && (
-        <div
-          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-          style={{ background: "var(--dash-surface-muted)", border: "1px solid var(--dash-border)" }}
-        >
-          <User className="h-3.5 w-3.5" style={{ color: "var(--dash-muted)" }} />
         </div>
       )}
     </div>
@@ -394,7 +610,7 @@ export function BookingInbox() {
                 <div className="space-y-3">
                   {active.messages.map((msg, i) => (
                     <div key={i} className="inbox-msg-in">
-                      <Bubble msg={msg} />
+                      <Bubble msg={msg} client={active.client} />
                     </div>
                   ))}
                 </div>
