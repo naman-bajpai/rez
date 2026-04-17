@@ -122,7 +122,25 @@ const DUMMY_THREADS: Thread[] = [
       {
         role: "assistant",
         type: "text",
-        content: "Booked! You're confirmed for Friday Apr 18 at 7:00 PM. I'll send a reminder 24 hrs before. See you then 💜",
+        content:
+          "Perfect — we're going to charge you $83 for this booking. Please pay here to lock in your spot: https://pay.rez.app/demo/maya-friday-7pm",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content:
+          "Note: if you no-show, you'll be charged a $30 no-show fee.",
+      },
+      {
+        role: "user",
+        type: "text",
+        content: "Paid! I just completed the payment link.",
+      },
+      {
+        role: "assistant",
+        type: "text",
+        content:
+          "Payment received. Your booking status is now paid and confirmed for Friday Apr 18 at 7:00 PM. I'll send a reminder 24 hrs before. See you then 💜",
       },
     ],
   },

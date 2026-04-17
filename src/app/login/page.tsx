@@ -10,24 +10,6 @@ import "../dashboard/dashboard-skins.css";
 export const dynamic = "force-dynamic";
 
 const testimonials: Testimonial[] = [
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/women/57.jpg",
-    name: "Sarah Chen",
-    handle: "@sarahdigital",
-    text: "Rez cut my booking back-and-forth in half within the first week.",
-  },
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/men/64.jpg",
-    name: "Marcus Johnson",
-    handle: "@marcustech",
-    text: "Deposit-first confirmation dramatically reduced no-shows for my clients.",
-  },
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/men/32.jpg",
-    name: "David Martinez",
-    handle: "@davidcreates",
-    text: "The workflow feels clean, fast, and actually built for real operators.",
-  },
 ];
 
 export default async function LoginPage() {
