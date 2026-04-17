@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Bot,
   Send,
@@ -37,6 +37,62 @@ type Thread = {
   created_at: string;
   client: Client | null;
 };
+
+const DUMMY_THREADS: Thread[] = [
+  {
+    id: "demo-thread-1",
+    ig_user_id: "17841452000124567",
+    paused: false,
+    created_at: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 3).toISOString(),
+    client: {
+      id: "demo-client-1",
+      name: "Maya Carter",
+      email: "maya@example.com",
+      phone: "+1 (323) 555-0148",
+      avg_spend: 145,
+      last_booked_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+      instagram_id: "maya.nails.la",
+    },
+    messages: [
+      { role: "user", content: "Hey! I want an almond full set with chrome tips. Do you have Friday evening?" },
+      { role: "assistant", content: "Yes, I can help with that. Friday has 5:30 PM and 6:15 PM available." },
+      { role: "user", content: "Perfect. Also can you add 3D charms on two nails?" },
+    ],
+  },
+  {
+    id: "demo-thread-2",
+    ig_user_id: "17841452000998888",
+    paused: true,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 16).toISOString(),
+    client: {
+      id: "demo-client-2",
+      name: "Sofia Nguyen",
+      email: "sofia@example.com",
+      avg_spend: 98,
+      last_booked_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 42).toISOString(),
+      instagram_id: "sofia.vibes",
+    },
+    messages: [
+      { role: "user", content: "Can you do this set from the photo I sent?" },
+      { role: "assistant", content: "That design maps closest to Deluxe Gel Art. Estimate: 2h 15m, $120." },
+      { role: "assistant", content: "I paused here so you can confirm final pricing before I proceed." },
+    ],
+  },
+  {
+    id: "demo-thread-3",
+    ig_user_id: "17841452000777777",
+    paused: false,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    client: null,
+    messages: [
+      { role: "user", content: "Do you have anything open tomorrow morning?" },
+      { role: "assistant", content: "Tomorrow I can offer 10:00 AM or 11:30 AM. Which works best?" },
+    ],
+  },
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -146,33 +202,19 @@ function Bubble({ msg }: { msg: StoredMessage }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function BookingInbox() {
-  const [threads, setThreads] = useState<Thread[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [threads, setThreads] = useState<Thread[]>(DUMMY_THREADS);
+  const [loading, setLoading] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [manualText, setManualText] = useState("");
   const [sending, setSending] = useState(false);
   const [toggling, setToggling] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Fetch threads
-  const fetchThreads = useCallback(async () => {
-    const res = await fetch("/api/inbox");
-    const data = await res.json() as { threads?: Thread[]; error?: string };
-    if (!data.error && data.threads) {
-      setThreads(data.threads);
-      if (!activeId && data.threads.length > 0) {
-        setActiveId(data.threads[0].id);
-      }
-    }
-    setLoading(false);
-  }, [activeId]);
-
   useEffect(() => {
-    fetchThreads();
-    // Poll every 15s to catch new DMs
-    const t = setInterval(fetchThreads, 15_000);
-    return () => clearInterval(t);
-  }, [fetchThreads]);
+    if (!activeId && DUMMY_THREADS.length > 0) {
+      setActiveId(DUMMY_THREADS[0].id);
+    }
+  }, [activeId]);
 
   // Scroll to bottom when active thread changes
   useEffect(() => {
@@ -181,46 +223,30 @@ export function BookingInbox() {
 
   const active = threads.find((t) => t.id === activeId) ?? null;
 
-  // Toggle paused
+  // Toggle paused locally for dummy data
   const togglePaused = async () => {
     if (!active) return;
     setToggling(true);
-    const res = await fetch(`/api/inbox/${active.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paused: !active.paused }),
-    });
-    if (res.ok) {
-      setThreads((prev) =>
-        prev.map((t) => (t.id === active.id ? { ...t, paused: !t.paused } : t))
-      );
-    }
+    setThreads((prev) =>
+      prev.map((t) => (t.id === active.id ? { ...t, paused: !t.paused } : t))
+    );
     setToggling(false);
   };
 
-  // Send manual message
+  // Send manual message locally for dummy data
   const sendMessage = async () => {
     if (!active || !manualText.trim()) return;
     setSending(true);
     const text = manualText.trim();
     setManualText("");
-
-    const res = await fetch(`/api/inbox/${active.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
-    });
-
-    if (res.ok) {
-      const newMsg: StoredMessage = { role: "assistant", content: text };
-      setThreads((prev) =>
-        prev.map((t) =>
-          t.id === active.id
-            ? { ...t, messages: [...t.messages, newMsg], updated_at: new Date().toISOString() }
-            : t
-        )
-      );
-    }
+    const newMsg: StoredMessage = { role: "assistant", content: text };
+    setThreads((prev) =>
+      prev.map((t) =>
+        t.id === active.id
+          ? { ...t, messages: [...t.messages, newMsg], updated_at: new Date().toISOString() }
+          : t
+      )
+    );
     setSending(false);
   };
 

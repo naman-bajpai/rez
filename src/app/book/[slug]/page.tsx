@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ view?: string }>;
 };
 
 async function getBusinessData(slug: string) {
@@ -17,8 +18,9 @@ async function getBusinessData(slug: string) {
   }
 }
 
-export default async function GuestBookingPage({ params }: Props) {
+export default async function GuestBookingPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { view } = await searchParams;
   const data = await getBusinessData(slug);
 
   if (!data || !data.business) notFound();
@@ -34,12 +36,7 @@ export default async function GuestBookingPage({ params }: Props) {
 
         .bk-page {
           min-height: 100dvh;
-          background-color: #F5F1EA;
-          background-image:
-            radial-gradient(ellipse 80% 50% at 15% 0%, rgba(184,99,50,0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 85% 100%, rgba(120,88,60,0.07) 0%, transparent 50%),
-            url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-          background-size: auto, auto, 256px 256px;
+          background-color: #F8F8FC;
           display: flex;
           align-items: flex-start;
           justify-content: center;
@@ -55,7 +52,12 @@ export default async function GuestBookingPage({ params }: Props) {
           {isAiChat ? (
             <AIChatBooking slug={slug} business={data.business} services={data.services} />
           ) : (
-            <BookingFlow slug={slug} business={data.business} services={data.services} />
+            <BookingFlow
+              slug={slug}
+              business={data.business}
+              services={data.services}
+              initialView={view === "upcoming" ? "upcoming" : undefined}
+            />
           )}
         </div>
       </main>

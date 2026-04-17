@@ -14,9 +14,10 @@ import {
   RefreshCw,
   CalendarDays,
   CalendarX,
-  DollarSign,
+  MessageSquare,
+  LogOut,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { PostBookingChat } from "@/components/booking/PostBookingChat";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,11 +41,11 @@ type TimeSlot = { startsAt: string; endsAt: string; label: string };
 
 type Step =
   | "select-service"
-  | "guest-info"
-  | "verify-otp"
+  | "verify"
   | "select-slot"
   | "confirm"
   | "my-bookings"
+  | "past-bookings"
   | "reschedule-slot";
 
 type GuestSession = { token: string; email: string; name: string };
@@ -97,6 +98,17 @@ function canModifyBooking(b: GuestBooking) {
   return ["pending", "confirmed"].includes(b.status) && new Date(b.starts_at) > new Date();
 }
 
+function isUpcomingBooking(b: GuestBooking) {
+  return ["pending", "confirmed"].includes(b.status) && new Date(b.starts_at) > new Date();
+}
+
+function getStatusColor(status: string) {
+  if (status === "confirmed") return { bg: "#EDFAF3", color: "#1A7A4A" };
+  if (status === "pending") return { bg: "var(--c-accent-soft)", color: "var(--c-accent)" };
+  if (status === "cancelled") return { bg: "#FFF2F1", color: "#BE3A2C" };
+  return { bg: "var(--c-divider)", color: "var(--c-sub)" };
+}
+
 function getTwoWeeksRange() {
   const today = new Date();
   const out = new Date(today);
@@ -111,16 +123,16 @@ const BK_STYLES = `
 
   .bk {
     font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --c-bg: #F5F1EA;
+    --c-bg: #F8F8FC;
     --c-surface: #FFFFFF;
-    --c-text: #1A1614;
-    --c-sub: #7C736D;
-    --c-muted: #ABA39D;
-    --c-border: #E4DDD4;
-    --c-divider: #EDE8E2;
-    --c-accent: #B86332;
-    --c-accent-soft: #FBF0E9;
-    --c-accent-ring: rgba(184,99,50,0.14);
+    --c-text: #18181B;
+    --c-sub: #3F3F46;
+    --c-muted: #71717A;
+    --c-border: #E4E4E7;
+    --c-divider: #F4F4F5;
+    --c-accent: #7C3AED;
+    --c-accent-soft: #F5F3FF;
+    --c-accent-ring: rgba(124,58,237,0.14);
     --c-green: #1A7A4A;
     --c-green-soft: #EDFAF3;
     color: var(--c-text);
@@ -148,7 +160,7 @@ const BK_STYLES = `
   .bk-svc {
     display: flex; width: 100%; align-items: center; justify-content: space-between;
     gap: 14px; padding: 18px 20px; border-radius: 14px;
-    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    border: 1.5px solid var(--c-border); background: #FFFFFF;
     cursor: pointer; text-align: left; transition: all 0.2s ease;
   }
   .bk-svc:hover {
@@ -161,14 +173,14 @@ const BK_STYLES = `
   /* Primary button */
   .bk-btn {
     width: 100%; height: 52px; border-radius: 14px;
-    background: var(--c-text); color: white;
+    background: var(--c-accent); color: white;
     font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
     letter-spacing: 0.01em; border: none; cursor: pointer;
     transition: all 0.2s ease;
     display: flex; align-items: center; justify-content: center; gap: 8px;
   }
   .bk-btn:hover:not(:disabled) {
-    background: #26201C;
+    background: #6D28D9;
     transform: translateY(-1px);
     box-shadow: 0 8px 24px -6px rgba(26,22,20,0.24);
   }
@@ -201,7 +213,7 @@ const BK_STYLES = `
   .bk-input {
     width: 100%; height: 50px; padding: 0 16px;
     border-radius: 12px; border: 1.5px solid var(--c-border);
-    background: #FAFAF7;
+    background: #FFFFFF;
     font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--c-text);
     outline: none; transition: all 0.15s ease; -webkit-appearance: none;
   }
@@ -215,7 +227,7 @@ const BK_STYLES = `
   /* OTP */
   .bk-otp {
     width: 100%; height: 68px; border-radius: 14px;
-    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    border: 1.5px solid var(--c-border); background: #FFFFFF;
     font-family: 'DM Sans', monospace; font-size: 26px; font-weight: 600;
     letter-spacing: 0.35em; text-align: center; color: var(--c-text);
     outline: none; transition: all 0.15s ease; -webkit-appearance: none;
@@ -237,7 +249,7 @@ const BK_STYLES = `
   .bk-cell.avail { color: var(--c-text); cursor: pointer; }
   .bk-cell.avail:hover { background: var(--c-accent-soft); color: var(--c-accent); }
   .bk-cell.today:not(.sel) { font-weight: 700; }
-  .bk-cell.sel { background: var(--c-text) !important; color: white !important; font-weight: 600; }
+  .bk-cell.sel { background: var(--c-accent) !important; color: white !important; font-weight: 600; }
   .bk-cell-dot {
     position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
     width: 3px; height: 3px; border-radius: 50%; background: var(--c-accent);
@@ -280,7 +292,7 @@ const BK_STYLES = `
   .bk-progress { display: flex; gap: 3px; width: 120px; }
   .bk-seg { height: 2px; flex: 1; border-radius: 2px; transition: background 0.35s ease; }
   .bk-seg-done { background: var(--c-accent); }
-  .bk-seg-now { background: var(--c-text); }
+  .bk-seg-now { background: var(--c-accent); }
   .bk-seg-next { background: var(--c-border); }
 
   /* Detail row */
@@ -294,7 +306,29 @@ const BK_STYLES = `
   /* Booking item */
   .bk-booking {
     padding: 18px; border-radius: 14px;
-    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    border: 1.5px solid var(--c-border); background: #FFFFFF;
+  }
+
+  .bk-booking-action {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+  }
+
+  .bk-booking-action:focus-visible {
+    outline: 3px solid var(--c-accent-ring);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+
+  .bk-booking-feature {
+    border-color: var(--c-accent);
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--c-accent-soft) 100%);
+    box-shadow: 0 10px 30px -20px rgba(124,58,237,0.45);
   }
 
   /* Wordmark */
@@ -315,18 +349,40 @@ const BK_STYLES = `
 
   /* Divider */
   .bk-line { height: 1px; background: var(--c-divider); margin: 0 -32px; }
+
+  /* Calendar layout */
+  .bk-cal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .bk-slots-panel {
+    border-top: 1px solid var(--c-divider);
+  }
+
+  @media (min-width: 680px) {
+    .bk-cal-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 0.9fr);
+    }
+
+    .bk-slots-panel {
+      border-top: none;
+      border-left: 1px solid var(--c-divider);
+    }
+  }
 `;
 
 // ─── Step progress bar ────────────────────────────────────────────────────────
 
-const STEP_ORDER: Step[] = ["select-service","guest-info","verify-otp","select-slot","confirm"];
+const STEP_ORDER: Step[] = ["select-service","verify","select-slot","confirm"];
 
 function ProgressBar({ step }: { step: Step }) {
-  const steps: Step[] = ["select-service","guest-info","select-slot","confirm"];
-  const cur = STEP_ORDER.indexOf(step === "verify-otp" ? "guest-info" : step);
+  const steps: Step[] = ["select-service","verify","select-slot","confirm"];
+  const cur = STEP_ORDER.indexOf(step);
   return (
     <div className="bk-progress">
-      {steps.map((s, i) => {
+      {steps.map((s) => {
         const idx = STEP_ORDER.indexOf(s);
         const cls = idx < cur ? "bk-seg bk-seg-done" : idx === cur ? "bk-seg bk-seg-now" : "bk-seg bk-seg-next";
         return <div key={s} className={cls} />;
@@ -421,18 +477,18 @@ function CalendarPicker({
       </div>
 
       {/* Day headers */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,38px)", gap: "2px 0", marginBottom: 4 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "2px 0", marginBottom: 4 }}>
         {DAYS_SHORT.map(d => (
-          <div key={d} style={{ width: 38, textAlign: "center", fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--c-muted)", textTransform: "uppercase", padding: "4px 0" }}>
+          <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", color: "var(--c-muted)", textTransform: "uppercase", padding: "4px 0" }}>
             {d}
           </div>
         ))}
       </div>
 
       {/* Day cells */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,38px)", gap: "2px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "2px 0" }}>
         {days.map((day, idx) => {
-          if (day === null) return <div key={`b-${idx}`} style={{ width: 38 }} />;
+          if (day === null) return <div key={`b-${idx}`} />;
 
           const iso = `${view.year}-${String(view.month + 1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
           const isToday = iso === today;
@@ -522,15 +578,18 @@ export function BookingFlow({
   slug,
   business,
   services,
+  initialView,
 }: {
   slug: string;
   business: Business;
   services: Service[];
+  initialView?: "upcoming";
 }) {
   const [step, setStep] = useState<Step>("select-service");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [guestInfo, setGuestInfo] = useState({ name: "", email: "" });
   const [otpCode, setOtpCode] = useState("");
+  const [otpRequested, setOtpRequested] = useState(false);
   const [guestSession, setGuestSession] = useState<GuestSession | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -541,6 +600,7 @@ export function BookingFlow({
   const [authIntent, setAuthIntent] = useState<"book" | "manage">("book");
   const [myBookings, setMyBookings] = useState<GuestBooking[]>([]);
   const [reschedulingBooking, setReschedulingBooking] = useState<GuestBooking | null>(null);
+  const [activeConversationBookingId, setActiveConversationBookingId] = useState<string | null>(null);
 
   const storageKey = `bk_guest_${slug}`;
 
@@ -599,23 +659,83 @@ export function BookingFlow({
     }
   }, [slug]);
 
+  const upcomingBookings = useMemo(
+    () =>
+      myBookings
+        .filter(isUpcomingBooking)
+        .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()),
+    [myBookings]
+  );
+
+  const pastBookings = useMemo(
+    () =>
+      myBookings
+        .filter((booking) => !isUpcomingBooking(booking))
+        .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()),
+    [myBookings]
+  );
+
+  const nextBooking = upcomingBookings[0] ?? null;
+  const otherUpcomingBookings = upcomingBookings.slice(1);
+
   useEffect(() => {
     if (step === "select-slot" && guestSession) loadSlots(guestSession.token);
   }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleServiceSelect = (service: Service) => {
     setSelectedService(service);
+    setSelectedSlot(null);
     setError(null);
     setAuthIntent("book");
+    setOtpCode("");
+    setOtpRequested(false);
     if (guestSession) { setStep("select-slot"); }
-    else { setStep("guest-info"); }
+    else { setStep("verify"); }
   };
 
   const handleManageBookings = () => {
     setSelectedService(null); setSelectedSlot(null); setReschedulingBooking(null);
     setAuthIntent("manage"); setError(null);
+    setOtpCode("");
+    setOtpRequested(false);
+    setActiveConversationBookingId(null);
     if (guestSession) { setStep("my-bookings"); loadMyBookings(guestSession.token); }
-    else { setStep("guest-info"); }
+    else { setStep("verify"); }
+  };
+
+  useEffect(() => {
+    if (initialView !== "upcoming") return;
+    setSelectedService(null);
+    setSelectedSlot(null);
+    setReschedulingBooking(null);
+    setAuthIntent("manage");
+    setError(null);
+    setOtpCode("");
+    setOtpRequested(false);
+    setActiveConversationBookingId(null);
+    if (guestSession) {
+      setStep("my-bookings");
+      loadMyBookings(guestSession.token);
+      return;
+    }
+    setStep("verify");
+  }, [guestSession, initialView, loadMyBookings]);
+
+  const handleGuestLogout = () => {
+    localStorage.removeItem(storageKey);
+    setGuestSession(null);
+    setGuestInfo({ name: "", email: "" });
+    setOtpCode("");
+    setOtpRequested(false);
+    setMyBookings([]);
+    setActiveConversationBookingId(null);
+    setReschedulingBooking(null);
+    setSelectedService(null);
+    setSelectedSlot(null);
+    setSelectedDate(null);
+    setAuthIntent("book");
+    setError(null);
+    setStep("select-service");
   };
 
   const handleSendOtp = async () => {
@@ -627,7 +747,7 @@ export function BookingFlow({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to send code");
-      setStep("verify-otp");
+      setOtpRequested(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send code");
     } finally {
@@ -647,6 +767,8 @@ export function BookingFlow({
       const session: GuestSession = { token: data.token, email: data.email, name: data.name };
       setGuestSession(session);
       localStorage.setItem(storageKey, JSON.stringify(session));
+      setOtpRequested(false);
+      setOtpCode("");
       if (authIntent === "manage" || !selectedService) {
         setStep("my-bookings"); loadMyBookings(session.token);
       } else {
@@ -692,6 +814,7 @@ export function BookingFlow({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to cancel");
       setMyBookings(prev => prev.map(b => b.id === booking.id ? data.booking : b));
+      setActiveConversationBookingId(current => current === booking.id ? null : current);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to cancel");
     } finally {
@@ -720,6 +843,7 @@ export function BookingFlow({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to reschedule");
       setMyBookings(prev => prev.map(b => b.id === reschedulingBooking.id ? data.booking : b));
+      setActiveConversationBookingId(reschedulingBooking.id);
       setReschedulingBooking(null); setSelectedService(null); setSlots([]); setSelectedDate(null);
       setStep("my-bookings");
     } catch (err) {
@@ -729,7 +853,72 @@ export function BookingFlow({
     }
   };
 
-  const isCalendarStep = step === "select-slot" || step === "reschedule-slot";
+  const renderBookingCard = (
+    booking: GuestBooking,
+    options: { featured?: boolean; interactive?: boolean } = {}
+  ) => {
+    const mod = canModifyBooking(booking);
+    const active = activeConversationBookingId === booking.id;
+    const statusColor = getStatusColor(booking.status);
+    const isInteractive = options.interactive && isUpcomingBooking(booking);
+    const summary = (
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontSize: options.featured ? 16 : 14, fontWeight: 600, color: "var(--c-text)" }}>
+            {booking.services?.name ?? "Appointment"}
+          </p>
+          <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 3 }}>
+            {formatDate(booking.starts_at)} · {formatTime(booking.starts_at)}
+          </p>
+          <p style={{ fontSize: 13, color: "var(--c-muted)", marginTop: 2 }}>
+            ${Number(booking.total_price).toFixed(2)}
+          </p>
+          {isInteractive && (
+            <p style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 500, color: "var(--c-accent)", marginTop: 10 }}>
+              <MessageSquare style={{ width: 12, height: 12 }} />
+              {active ? "Conversation open" : "Open AI booking chat"}
+            </p>
+          )}
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: statusColor.bg, color: statusColor.color, textTransform: "capitalize", flexShrink: 0, marginTop: 2 }}>
+          {booking.status}
+        </span>
+      </div>
+    );
+
+    return (
+      <div key={booking.id} className={`bk-booking${options.featured ? " bk-booking-feature" : ""}`}>
+        {isInteractive ? (
+          <button
+            type="button"
+            className="bk-booking-action"
+            onClick={() => setActiveConversationBookingId(current => current === booking.id ? null : booking.id)}
+          >
+            {summary}
+          </button>
+        ) : (
+          summary
+        )}
+
+        {mod && (
+          <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+            <button type="button" className="bk-btn-sec" onClick={() => handleStartReschedule(booking)} disabled={loading}>
+              <RefreshCw style={{ width: 12, height: 12 }} /> Reschedule
+            </button>
+            <button type="button" className="bk-btn-del" onClick={() => handleCancelBooking(booking)} disabled={loading}>
+              <CalendarX style={{ width: 12, height: 12 }} /> Cancel
+            </button>
+          </div>
+        )}
+
+        {active && (
+          <div style={{ marginTop: 16 }}>
+            <PostBookingChat slug={slug} bookingId={booking.id} />
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="bk">
@@ -746,7 +935,7 @@ export function BookingFlow({
               {guestSession.name}
             </span>
           )}
-          {!["my-bookings","reschedule-slot"].includes(step) && step !== "select-service" && (
+          {!["my-bookings","past-bookings","reschedule-slot"].includes(step) && step !== "select-service" && (
             <ProgressBar step={step} />
           )}
           {step === "select-service" && (
@@ -810,20 +999,30 @@ export function BookingFlow({
         </div>
       )}
 
-      {/* ── GUEST INFO ─────────────────────────────────────────────────────── */}
-      {step === "guest-info" && (
-        <div key="guest-info" className="bk-card bk-in">
-          <button type="button" className="bk-back" onClick={() => setStep("select-service")}>
+      {/* ── VERIFY (details + OTP) ─────────────────────────────────────────── */}
+      {step === "verify" && (
+        <div key="verify" className="bk-card bk-in">
+          <button
+            type="button"
+            className="bk-back"
+            onClick={() => {
+              setStep("select-service");
+              setOtpRequested(false);
+              setOtpCode("");
+            }}
+          >
             <ArrowLeft style={{ width: 13, height: 13 }} /> Back
           </button>
 
           <h2 className="bk-serif" style={{ fontSize: 26, fontWeight: 400, marginBottom: 6 }}>
-            {authIntent === "manage" ? "Find your bookings" : "Your details"}
+            {authIntent === "manage" ? "Verify to continue" : "Verify your details"}
           </h2>
-          <p style={{ fontSize: 13.5, color: "var(--c-sub)", marginBottom: 28, lineHeight: 1.5 }}>
-            {authIntent === "manage"
-              ? "Enter your email — we'll send a quick verification code."
-              : "We'll send you a verification code to confirm."}
+          <p style={{ fontSize: 13.5, color: "var(--c-sub)", marginBottom: 24, lineHeight: 1.5 }}>
+            {otpRequested
+              ? <>We sent a 6-digit code to <strong style={{ color: "var(--c-text)" }}>{guestInfo.email}</strong></>
+              : authIntent === "manage"
+                ? "Enter your email and we'll send a verification code."
+                : "Enter your info and we'll send a verification code before showing times."}
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -854,68 +1053,64 @@ export function BookingFlow({
                   value={guestInfo.email}
                   onChange={e => setGuestInfo(p => ({ ...p, email: e.target.value }))}
                   onKeyDown={e => {
-                    if (e.key === "Enter" && guestInfo.email && (authIntent === "manage" || guestInfo.name)) handleSendOtp();
+                    if (e.key !== "Enter") return;
+                    if (!otpRequested && guestInfo.email && (authIntent === "manage" || guestInfo.name)) {
+                      handleSendOtp();
+                    }
+                    if (otpRequested && otpCode.length === 6) {
+                      handleVerifyOtp();
+                    }
                   }}
                 />
               </div>
             </div>
-            <button
-              type="button"
-              className="bk-btn"
-              style={{ marginTop: 6 }}
-              onClick={handleSendOtp}
-              disabled={!guestInfo.email || (authIntent === "book" && !guestInfo.name) || loading}
-            >
-              {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Send verification code"}
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* ── VERIFY OTP ─────────────────────────────────────────────────────── */}
-      {step === "verify-otp" && (
-        <div key="verify-otp" className="bk-card bk-in">
-          <button type="button" className="bk-back" onClick={() => setStep("guest-info")}>
-            <ArrowLeft style={{ width: 13, height: 13 }} /> Back
-          </button>
+            {otpRequested && (
+              <div>
+                <label className="bk-label">Verification code</label>
+                <input
+                  className="bk-otp"
+                  placeholder="——————"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                  onKeyDown={e => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
+                  autoFocus
+                />
+              </div>
+            )}
 
-          <h2 className="bk-serif" style={{ fontSize: 26, fontWeight: 400, marginBottom: 6 }}>
-            Check your inbox
-          </h2>
-          <p style={{ fontSize: 13.5, color: "var(--c-sub)", marginBottom: 28, lineHeight: 1.5 }}>
-            We sent a 6-digit code to <strong style={{ color: "var(--c-text)" }}>{guestInfo.email}</strong>
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div>
-              <label className="bk-label">Verification code</label>
-              <input
-                className="bk-otp"
-                placeholder="——————"
-                maxLength={6}
-                value={otpCode}
-                onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                onKeyDown={e => { if (e.key === "Enter" && otpCode.length === 6) handleVerifyOtp(); }}
-                autoFocus
-              />
-            </div>
-            <button
-              type="button"
-              className="bk-btn"
-              onClick={handleVerifyOtp}
-              disabled={otpCode.length !== 6 || loading}
-            >
-              {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Verify & continue"}
-            </button>
-            <button
-              type="button"
-              onClick={handleSendOtp}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--c-muted)", textAlign: "center", padding: "4px 0", transition: "color 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "var(--c-accent)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "var(--c-muted)")}
-            >
-              Didn&apos;t get it? Resend code
-            </button>
+            {!otpRequested ? (
+              <button
+                type="button"
+                className="bk-btn"
+                style={{ marginTop: 6 }}
+                onClick={handleSendOtp}
+                disabled={!guestInfo.email || (authIntent === "book" && !guestInfo.name) || loading}
+              >
+                {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Send verification code"}
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="bk-btn"
+                  onClick={handleVerifyOtp}
+                  disabled={otpCode.length !== 6 || loading}
+                >
+                  {loading ? <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} /> : "Verify & continue"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--c-muted)", textAlign: "center", padding: "4px 0", transition: "color 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--c-accent)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--c-muted)")}
+                >
+                  Didn&apos;t get it? Resend code
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -953,27 +1148,14 @@ export function BookingFlow({
                 <p style={{ fontSize: 13, color: "var(--c-muted)" }}>Check back soon.</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 0 }} className="bk-cal-grid">
-                <style>{`
-                  @media (min-width: 680px) {
-                    .bk-cal-grid { grid-template-columns: 1fr 1fr !important; }
-                    .bk-cal-divider { display: block !important; }
-                  }
-                `}</style>
+              <div className="bk-cal-grid">
                 {/* Calendar */}
                 <div style={{ padding: "28px 28px 24px" }}>
                   <p className="bk-label" style={{ marginBottom: 18 }}>Select a date</p>
                   <CalendarPicker slots={slots} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                 </div>
-                {/* Divider */}
-                <div className="bk-cal-divider" style={{ display: "none", width: 1, background: "var(--c-divider)", margin: "24px 0" }} />
                 {/* Slots */}
-                <div style={{ padding: "28px 28px 24px", borderTop: "1px solid var(--c-divider)" }} className="bk-slots-panel">
-                  <style>{`
-                    @media (min-width: 680px) {
-                      .bk-slots-panel { border-top: none !important; border-left: 1px solid var(--c-divider); }
-                    }
-                  `}</style>
+                <div style={{ padding: "28px 28px 24px" }} className="bk-slots-panel">
                   <TimeSlotsPanel date={selectedDate} slots={slots} onSelect={slot => { setSelectedSlot(slot); setStep("confirm"); }} loading={slotsLoading} />
                 </div>
               </div>
@@ -1000,12 +1182,12 @@ export function BookingFlow({
                 <span style={{ fontSize: 14 }}>Finding new slots…</span>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr" }} className="bk-cal-grid">
+              <div className="bk-cal-grid">
                 <div style={{ padding: "28px 28px 24px" }}>
                   <p className="bk-label" style={{ marginBottom: 18 }}>Pick a new date</p>
                   <CalendarPicker slots={slots} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                 </div>
-                <div style={{ padding: "28px 28px 24px", borderTop: "1px solid var(--c-divider)" }} className="bk-slots-panel">
+                <div style={{ padding: "28px 28px 24px" }} className="bk-slots-panel">
                   <TimeSlotsPanel date={selectedDate} slots={slots} onSelect={handleRescheduleBooking} loading={slotsLoading} />
                 </div>
               </div>
@@ -1027,7 +1209,7 @@ export function BookingFlow({
 
           {/* Summary */}
           <div style={{ borderRadius: 14, border: "1.5px solid var(--c-border)", overflow: "hidden", marginBottom: 24 }}>
-            <div style={{ padding: "16px 20px", background: "#FAFAF7", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ padding: "16px 20px", background: "var(--c-accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <p style={{ fontSize: 15, fontWeight: 600, color: "var(--c-text)" }}>{selectedService.name}</p>
                 <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{selectedService.duration_mins} min</p>
@@ -1084,7 +1266,7 @@ export function BookingFlow({
               <button type="button" className="bk-back" style={{ marginBottom: 8 }} onClick={() => { setAuthIntent("book"); setStep("select-service"); }}>
                 <ArrowLeft style={{ width: 13, height: 13 }} /> Services
               </button>
-              <h2 className="bk-serif" style={{ fontSize: 24, fontWeight: 400 }}>Your bookings</h2>
+              <h2 className="bk-serif" style={{ fontSize: 24, fontWeight: 400 }}>Upcoming booking</h2>
               <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{guestSession?.email}</p>
             </div>
             <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 24 }}>
@@ -1092,10 +1274,14 @@ export function BookingFlow({
                 {loading ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : <RefreshCw style={{ width: 13, height: 13 }} />}
                 Refresh
               </button>
+              <button type="button" className="bk-btn-sec" onClick={handleGuestLogout}>
+                <LogOut style={{ width: 13, height: 13 }} />
+                Log out
+              </button>
               <button
                 type="button"
                 onClick={() => { setAuthIntent("book"); setSelectedService(null); setStep("select-service"); }}
-                style={{ height: 38, padding: "0 14px", borderRadius: 10, border: "none", background: "var(--c-text)", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}
+                style={{ height: 38, padding: "0 14px", borderRadius: 10, border: "none", background: "var(--c-accent)", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}
               >
                 + Book new
               </button>
@@ -1107,43 +1293,73 @@ export function BookingFlow({
               <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
               <span style={{ fontSize: 13 }}>Loading…</span>
             </div>
-          ) : myBookings.length === 0 ? (
+          ) : upcomingBookings.length === 0 ? (
             <div style={{ textAlign: "center", padding: "48px 0" }}>
               <CalendarDays style={{ width: 32, height: 32, color: "var(--c-border)", margin: "0 auto 10px" }} />
-              <p style={{ fontSize: 14, color: "var(--c-sub)" }}>No bookings found.</p>
+              <p style={{ fontSize: 14, color: "var(--c-sub)" }}>No upcoming bookings.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {myBookings.map(booking => {
-                const mod = canModifyBooking(booking);
-                const statusColor = booking.status === "confirmed" ? { bg: "#EDFAF3", color: "#1A7A4A" } : booking.status === "pending" ? { bg: "#FFF8EC", color: "#92500F" } : { bg: "var(--c-divider)", color: "var(--c-sub)" };
-                return (
-                  <div key={booking.id} className="bk-booking">
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                      <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text)" }}>{booking.services?.name ?? "Appointment"}</p>
-                        <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 3 }}>
-                          {formatDate(booking.starts_at)} · {formatTime(booking.starts_at)}
-                        </p>
-                        <p style={{ fontSize: 13, color: "var(--c-muted)", marginTop: 2 }}>${Number(booking.total_price).toFixed(2)}</p>
-                      </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 20, background: statusColor.bg, color: statusColor.color, textTransform: "capitalize", flexShrink: 0, marginTop: 2 }}>
-                        {booking.status}
-                      </span>
-                    </div>
-                    {mod && (
-                      <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                        <button type="button" className="bk-btn-sec" onClick={() => handleStartReschedule(booking)} disabled={loading}>
-                          <RefreshCw style={{ width: 12, height: 12 }} /> Reschedule
-                        </button>
-                        <button type="button" className="bk-btn-del" onClick={() => handleCancelBooking(booking)} disabled={loading}>
-                          <CalendarX style={{ width: 12, height: 12 }} /> Cancel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {nextBooking && renderBookingCard(nextBooking, { featured: true, interactive: true })}
+              {otherUpcomingBookings.length > 0 && (
+                <>
+                  <p className="bk-label" style={{ marginTop: 14, marginBottom: 0 }}>More upcoming</p>
+                  {otherUpcomingBookings.map(booking => renderBookingCard(booking, { interactive: true }))}
+                </>
+              )}
+            </div>
+          )}
+
+          <div style={{ height: 1, background: "var(--c-divider)", margin: "24px -32px 18px" }} />
+          <button
+            type="button"
+            className="bk-btn-sec"
+            onClick={() => setStep("past-bookings")}
+            style={{ width: "100%", height: 44 }}
+          >
+            <CalendarDays style={{ width: 13, height: 13 }} />
+            View past bookings
+            {pastBookings.length > 0 ? ` (${pastBookings.length})` : ""}
+          </button>
+        </div>
+      )}
+
+      {/* ── PAST BOOKINGS ─────────────────────────────────────────────────── */}
+      {step === "past-bookings" && (
+        <div key="past-bookings" className="bk-card bk-in">
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 12 }}>
+            <div>
+              <button type="button" className="bk-back" style={{ marginBottom: 8 }} onClick={() => setStep("my-bookings")}>
+                <ArrowLeft style={{ width: 13, height: 13 }} /> Upcoming
+              </button>
+              <h2 className="bk-serif" style={{ fontSize: 24, fontWeight: 400 }}>Past bookings</h2>
+              <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{guestSession?.email}</p>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 24 }}>
+              <button type="button" className="bk-btn-sec" onClick={() => guestSession && loadMyBookings(guestSession.token)} disabled={loading}>
+                {loading ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : <RefreshCw style={{ width: 13, height: 13 }} />}
+                Refresh
+              </button>
+              <button type="button" className="bk-btn-sec" onClick={handleGuestLogout}>
+                <LogOut style={{ width: 13, height: 13 }} />
+                Log out
+              </button>
+            </div>
+          </div>
+
+          {loading && myBookings.length === 0 ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "48px 0", color: "var(--c-muted)" }}>
+              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
+              <span style={{ fontSize: 13 }}>Loading…</span>
+            </div>
+          ) : pastBookings.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "48px 0" }}>
+              <CalendarDays style={{ width: 32, height: 32, color: "var(--c-border)", margin: "0 auto 10px" }} />
+              <p style={{ fontSize: 14, color: "var(--c-sub)" }}>No past bookings yet.</p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {pastBookings.map(booking => renderBookingCard(booking))}
             </div>
           )}
         </div>

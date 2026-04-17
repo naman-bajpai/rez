@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { Check, Copy, ExternalLink, Link2 } from "lucide-react";
 import Link from "next/link";
 
 export function ShareLinkPanel({ slug, name }: { slug: string; name: string }) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const origin = useSyncExternalStore(
+    useCallback(() => () => {}, []),
+    useCallback(() => window.location.origin, []),
+    () => ""
+  );
   const bookingUrl = `${origin}/book/${slug}`;
 
   const [copied, setCopied] = useState(false);

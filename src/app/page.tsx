@@ -6,8 +6,8 @@ import "./dashboard/dashboard-skins.css";
 
 const features = [
   {
-    title: "Inbox to intent",
-    copy: "Rez identifies service, price, and booking intent from DMs so you skip repetitive replies.",
+    title: "Visual Quote Engine",
+    copy: "Multimodal AI analyzes inspiration photos to instantly estimate complexity, duration, and price.",
     icon: MessageCircle,
   },
   {

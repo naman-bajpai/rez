@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, Loader2, Sparkles, CheckCircle2, ArrowLeft } from "lucide-react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Send, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 type Business = { id: string; name: string; slug: string; owner_name?: string };
 type Service = { id: string; name: string; duration_mins: number; price: number };
 type GuestSession = { token: string; email: string; name: string };
+type BookingStage = "Service" | "Verify" | "Slot" | "Confirm";
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
@@ -18,19 +19,43 @@ const CHAT_STYLES = `
 
   .bk-chat {
     font-family: 'DM Sans', -apple-system, sans-serif;
-    --c-bg: #F5F1EA;
+    --c-bg: #F8F8FC;
     --c-surface: #FFFFFF;
-    --c-text: #1A1614;
-    --c-sub: #7C736D;
-    --c-muted: #ABA39D;
-    --c-border: #E4DDD4;
-    --c-accent: #B86332;
-    --c-accent-soft: #FBF0E9;
-    --c-accent-ring: rgba(184,99,50,0.14);
+    --c-text: #18181B;
+    --c-sub: #3F3F46;
+    --c-muted: #71717A;
+    --c-border: #E4E4E7;
+    --c-accent: #7C3AED;
+    --c-accent-soft: #F5F3FF;
+    --c-accent-ring: rgba(124,58,237,0.14);
     color: var(--c-text);
   }
 
   .bk-chat-serif { font-family: 'Fraunces', Georgia, serif; }
+
+  .bk-stage-wrap {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .bk-stage-pill {
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--c-border);
+    background: white;
+    color: var(--c-muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .bk-stage-pill.active {
+    border-color: var(--c-accent);
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+  }
 
   /* Shell */
   .bk-chat-shell {
@@ -49,7 +74,7 @@ const CHAT_STYLES = `
     max-width: 82%;
     padding: 11px 15px;
     border-radius: 18px 18px 18px 4px;
-    background: #F5F1EA;
+    background: var(--c-accent-soft);
     border: 1px solid var(--c-border);
     font-size: 13.5px;
     line-height: 1.6;
@@ -60,7 +85,7 @@ const CHAT_STYLES = `
     max-width: 82%;
     padding: 11px 15px;
     border-radius: 18px 18px 4px 18px;
-    background: var(--c-text);
+    background: var(--c-accent);
     color: white;
     font-size: 13.5px;
     line-height: 1.6;
@@ -76,7 +101,7 @@ const CHAT_STYLES = `
   .bk-chat-input {
     flex: 1; height: 44px; padding: 0 16px;
     border-radius: 12px; border: 1.5px solid var(--c-border);
-    background: #FAFAF7;
+    background: #FFFFFF;
     font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--c-text);
     outline: none; transition: all 0.15s ease;
   }
@@ -95,7 +120,7 @@ const CHAT_STYLES = `
     flex-shrink: 0; transition: all 0.18s ease;
   }
   .bk-send:hover:not(:disabled) {
-    background: #26201C;
+    background: #6D28D9;
     transform: translateY(-1px);
     box-shadow: 0 4px 14px -4px rgba(26,22,20,0.22);
   }
@@ -113,7 +138,7 @@ const CHAT_STYLES = `
 
   .bk-otp-input {
     width: 100%; height: 56px; border-radius: 12px;
-    border: 1.5px solid var(--c-border); background: #FAFAF7;
+    border: 1.5px solid var(--c-border); background: #FFFFFF;
     font-family: 'DM Sans', monospace; font-size: 22px; font-weight: 600;
     letter-spacing: 0.3em; text-align: center; color: var(--c-text);
     outline: none; transition: all 0.15s;
@@ -132,7 +157,7 @@ const CHAT_STYLES = `
     display: flex; align-items: center; justify-content: center; gap: 6px;
     transition: all 0.15s;
   }
-  .bk-otp-btn:hover:not(:disabled) { background: #26201C; }
+  .bk-otp-btn:hover:not(:disabled) { background: #6D28D9; }
   .bk-otp-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -191,7 +216,7 @@ function Typing() {
       <div style={{
         padding: "12px 16px",
         borderRadius: "18px 18px 18px 4px",
-        background: "#F5F1EA",
+        background: "var(--c-accent-soft)",
         border: "1px solid var(--c-border)",
         display: "flex", gap: 5, alignItems: "center",
       }}>
@@ -279,6 +304,13 @@ export function AIChatBooking({
   const [pendingOtp, setPendingOtp] = useState<{ email: string; name: string } | null>(null);
   const [successUrl, setSuccessUrl] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const stageOrder: BookingStage[] = useMemo(() => ["Service", "Verify", "Slot", "Confirm"], []);
+  const currentStage: BookingStage = useMemo(() => {
+    if (successUrl) return "Confirm";
+    if (pendingOtp) return "Verify";
+    if (guestSession) return "Slot";
+    return "Service";
+  }, [successUrl, pendingOtp, guestSession]);
 
   useEffect(() => {
     try {
@@ -340,7 +372,7 @@ export function AIChatBooking({
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || !!pendingOtp) return;
     setInput("");
     const userMsg: ChatMessage = { role: "user", content: text };
     const newMessages = [...messages, userMsg];
@@ -367,11 +399,13 @@ export function AIChatBooking({
       {/* Wordmark */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
         <span className="bk-chat-serif" style={{ fontStyle: "italic", fontWeight: 300, fontSize: 17, color: "var(--c-muted)" }}>rez</span>
-        {guestSession && (
+        {guestSession ? (
           <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--c-sub)", background: "white", border: "1px solid var(--c-border)", borderRadius: 20, padding: "4px 10px" }}>
             <CheckCircle2 style={{ width: 11, height: 11, color: "var(--c-accent)" }} />
             {guestSession.name}
           </span>
+        ) : (
+          <span style={{ fontSize: 12, color: "var(--c-sub)" }}>Guided booking chat</span>
         )}
       </div>
 
@@ -399,6 +433,13 @@ export function AIChatBooking({
             <p style={{ fontSize: 11.5, color: "var(--c-muted)", marginTop: 1 }}>
               {business.owner_name ? `with ${business.owner_name} · ` : ""}AI booking assistant
             </p>
+            <div className="bk-stage-wrap" style={{ marginTop: 8 }}>
+              {stageOrder.map((stage) => (
+                <span key={stage} className={`bk-stage-pill${stage === currentStage ? " active" : ""}`}>
+                  {stage}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -407,7 +448,7 @@ export function AIChatBooking({
           flex: 1, overflowY: "auto",
           padding: "20px 18px",
           display: "flex", flexDirection: "column", gap: 12,
-          background: "#FAFAF7",
+          background: "#FFFFFF",
         }}>
           {messages.map((msg, i) => (
             <Bubble key={i} msg={msg} delay={0} />
@@ -458,13 +499,13 @@ export function AIChatBooking({
               }
             }}
             placeholder="Message…"
-            disabled={loading || !!successUrl}
+            disabled={loading || !!successUrl || !!pendingOtp}
           />
           <button
             type="button"
             className="bk-send"
             onClick={handleSend}
-            disabled={!input.trim() || loading || !!successUrl}
+            disabled={!input.trim() || loading || !!successUrl || !!pendingOtp}
           >
             {loading
               ? <Loader2 style={{ width: 16, height: 16, color: "white", animation: "spin 1s linear infinite" }} />

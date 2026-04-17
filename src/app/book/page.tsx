@@ -12,11 +12,11 @@ export default async function BookRedirectPage({ searchParams }: Props) {
     redirect(`/book/${encodeURIComponent(slug)}`);
   }
   return (
-    <main className="mx-auto flex max-w-md flex-col gap-4 p-8">
-      <h1 className="text-xl font-semibold">Book</h1>
-      <p className="text-zinc-600 dark:text-zinc-400">
+    <main className="mx-auto flex min-h-[100dvh] max-w-md flex-col justify-center gap-4 bg-[#F8F8FC] p-8 text-[#18181B]">
+      <h1 className="text-xl font-[400]">Book</h1>
+      <p className="text-sm text-[#3F3F46]">
         Add a business slug to the URL, for example{" "}
-        <Link className="underline" href="/book?slug=demo">
+        <Link className="text-[#7C3AED] underline" href="/book?slug=demo">
           /book?slug=demo
         </Link>
         .

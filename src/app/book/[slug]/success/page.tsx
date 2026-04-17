@@ -50,15 +50,19 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
 
         .suc-page {
           min-height: 100dvh;
-          background-color: #F5F1EA;
-          background-image:
-            radial-gradient(ellipse 70% 40% at 50% 0%, rgba(184,99,50,0.09) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 60% at 100% 100%, rgba(120,88,60,0.06) 0%, transparent 50%);
+          background-color: #F8F8FC;
           display: flex;
           align-items: flex-start;
           justify-content: center;
           padding: 60px 16px 80px;
           font-family: 'DM Sans', -apple-system, sans-serif;
+          --c-text: #18181B;
+          --c-sub: #3F3F46;
+          --c-muted: #71717A;
+          --c-border: #E4E4E7;
+          --c-divider: #F4F4F5;
+          --c-accent: #7C3AED;
+          --c-accent-soft: #F5F3FF;
         }
 
         @media (max-width: 640px) {
@@ -67,9 +71,9 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
 
         .suc-card {
           background: white;
-          border: 1px solid #E4DDD4;
+          border: 1px solid var(--c-border);
           border-radius: 22px;
-          box-shadow: 0 2px 32px -8px rgba(26,22,20,0.10);
+          box-shadow: 0 2px 32px -8px rgba(24,24,27,0.10);
           overflow: hidden;
           margin-bottom: 12px;
         }
@@ -79,24 +83,24 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
         .suc-btn-primary {
           display: flex; align-items: center; justify-content: center; gap: 8px;
           width: 100%; height: 50px; border-radius: 14px;
-          background: #1A1614; color: white; border: none; cursor: pointer;
+          background: var(--c-accent); color: white; border: none; cursor: pointer;
           font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
           text-decoration: none; transition: all 0.18s ease;
         }
         .suc-btn-primary:hover {
-          background: #26201C;
+          background: #6D28D9;
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px -4px rgba(26,22,20,0.22);
+          box-shadow: 0 6px 20px -4px rgba(124,58,237,0.22);
         }
 
         .suc-btn-ghost {
           display: flex; align-items: center; justify-content: center; gap: 6px;
           width: 100%; height: 44px; border-radius: 12px;
-          background: transparent; color: #7C736D; border: none; cursor: pointer;
+          background: transparent; color: var(--c-sub); border: none; cursor: pointer;
           font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 500;
           text-decoration: none; transition: color 0.15s;
         }
-        .suc-btn-ghost:hover { color: #1A1614; }
+        .suc-btn-ghost:hover { color: var(--c-text); }
 
         @keyframes sucIn {
           from { opacity: 0; transform: translateY(14px) scale(0.98); }
@@ -130,10 +134,10 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
-            <h1 className="suc-serif" style={{ fontSize: 32, fontWeight: 400, color: "#1A1614", marginBottom: 6, lineHeight: 1.15 }}>
+            <h1 className="suc-serif" style={{ fontSize: 32, fontWeight: 400, color: "var(--c-text)", marginBottom: 6, lineHeight: 1.15 }}>
               {booking?.guest_name ? `See you soon, ${booking.guest_name.split(" ")[0]}!` : "You're booked!"}
             </h1>
-            <p style={{ fontSize: 14, color: "#7C736D" }}>
+            <p style={{ fontSize: 14, color: "var(--c-sub)" }}>
               Your appointment has been confirmed.
             </p>
           </div>
@@ -144,9 +148,9 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
               {/* Service row */}
               <div style={{ padding: "20px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1614" }}>{svc?.name ?? "Appointment"}</p>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: "var(--c-text)" }}>{svc?.name ?? "Appointment"}</p>
                   {svc?.duration_mins && (
-                    <p style={{ fontSize: 13, color: "#7C736D", marginTop: 2 }}>{svc.duration_mins} min</p>
+                    <p style={{ fontSize: 13, color: "var(--c-sub)", marginTop: 2 }}>{svc.duration_mins} min</p>
                   )}
                 </div>
                 <span style={{
@@ -160,20 +164,20 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
               {/* Date/time */}
               {startInfo && (
                 <>
-                  <div style={{ height: 1, background: "#EDE8E2" }} />
+                  <div style={{ height: 1, background: "var(--c-divider)" }} />
                   <div style={{ padding: "16px 22px", display: "flex", flexDirection: "column", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{
-                        width: 28, height: 28, borderRadius: 8, background: "#F5F1EA",
+                        width: 28, height: 28, borderRadius: 8, background: "var(--c-accent-soft)",
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                       }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7C736D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--c-sub)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
                       </div>
                       <div>
-                        <p style={{ fontSize: 13.5, fontWeight: 500, color: "#1A1614" }}>{startInfo.date}</p>
-                        <p style={{ fontSize: 13, color: "#7C736D" }}>
+                        <p style={{ fontSize: 13.5, fontWeight: 500, color: "var(--c-text)" }}>{startInfo.date}</p>
+                        <p style={{ fontSize: 13, color: "var(--c-sub)" }}>
                           {startInfo.time}{endTime && ` – ${endTime}`}
                         </p>
                       </div>
@@ -185,15 +189,15 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
               {/* Email + ref */}
               {(booking.guest_email || booking_id) && (
                 <>
-                  <div style={{ height: 1, background: "#EDE8E2" }} />
+                  <div style={{ height: 1, background: "var(--c-divider)" }} />
                   <div style={{ padding: "12px 22px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
                     {booking.guest_email && (
-                      <p style={{ fontSize: 12, color: "#ABA39D" }}>
-                        Confirmation → <strong style={{ color: "#7C736D" }}>{booking.guest_email}</strong>
+                      <p style={{ fontSize: 12, color: "var(--c-muted)" }}>
+                        Confirmation → <strong style={{ color: "var(--c-sub)" }}>{booking.guest_email}</strong>
                       </p>
                     )}
                     {booking_id && (
-                      <p style={{ fontSize: 11.5, color: "#ABA39D", fontFamily: "monospace" }}>
+                      <p style={{ fontSize: 11.5, color: "var(--c-muted)", fontFamily: "monospace" }}>
                         #{booking_id.slice(0, 8).toUpperCase()}
                       </p>
                     )}
@@ -218,11 +222,11 @@ export default async function BookingSuccessPage({ params, searchParams }: Props
               </svg>
               Book another appointment
             </Link>
-            <Link href="/" className="suc-btn-ghost">
+            <Link href={`/book/${slug}?view=upcoming`} className="suc-btn-ghost">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
               </svg>
-              Back to home
+              Back to My Bookings
             </Link>
           </div>
 

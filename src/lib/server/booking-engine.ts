@@ -1,5 +1,47 @@
 import { createServiceRoleClient } from "./supabase";
 
+type UnavailableBlock = {
+  start_time: string;
+  end_time: string;
+};
+
+type ScheduleRule = {
+  start: string;
+  end: string;
+  isActive: boolean;
+  unavailableBlocks: UnavailableBlock[];
+};
+
+function normalizeUnavailableBlocks(value: unknown): UnavailableBlock[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((block) => {
+      if (!block || typeof block !== "object") return null;
+
+      const candidate = block as Partial<UnavailableBlock>;
+      if (
+        typeof candidate.start_time !== "string" ||
+        typeof candidate.end_time !== "string"
+      ) {
+        return null;
+      }
+
+      return {
+        start_time: candidate.start_time,
+        end_time: candidate.end_time,
+      };
+    })
+    .filter((block): block is UnavailableBlock => block !== null);
+}
+
+function dateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 /**
  * Generate 30-minute time slots for a given day, service, and business.
  */
@@ -29,11 +71,20 @@ export async function getAvailableSlots(params: {
   // Get business availability schedule
   const { data: schedule } = await supabase
     .from("availability")
-    .select("day_of_week, start_time, end_time")
+    .select("day_of_week, start_time, end_time, unavailable_blocks")
     .eq("business_id", businessId)
     .eq("is_active", true);
 
-  if (!schedule || schedule.length === 0) return [];
+  const { data: overrides } = await supabase
+    .from("availability_overrides")
+    .select("date, start_time, end_time, is_active, unavailable_blocks")
+    .eq("business_id", businessId)
+    .gte("date", dateFrom)
+    .lte("date", dateTo);
+
+  if ((!schedule || schedule.length === 0) && (!overrides || overrides.length === 0)) {
+    return [];
+  }
 
   // Get existing confirmed/pending bookings in the range
   const { data: existingBookings } = await supabase
@@ -52,11 +103,23 @@ export async function getAvailableSlots(params: {
     }));
 
   const slots: { startsAt: string; endsAt: string; label: string }[] = [];
-  const scheduleMap = new Map<number, { start: string; end: string }>();
-  for (const s of schedule) {
+  const scheduleMap = new Map<number, ScheduleRule>();
+  for (const s of schedule ?? []) {
     scheduleMap.set(s.day_of_week as number, {
       start: s.start_time as string,
       end: s.end_time as string,
+      isActive: true,
+      unavailableBlocks: normalizeUnavailableBlocks(s.unavailable_blocks),
+    });
+  }
+
+  const overrideMap = new Map<string, ScheduleRule>();
+  for (const override of overrides ?? []) {
+    overrideMap.set(override.date as string, {
+      start: override.start_time as string,
+      end: override.end_time as string,
+      isActive: Boolean(override.is_active),
+      unavailableBlocks: normalizeUnavailableBlocks(override.unavailable_blocks),
     });
   }
 
@@ -67,8 +130,8 @@ export async function getAvailableSlots(params: {
 
   while (current <= end && slots.length < 50) {
     const dow = current.getDay();
-    const avail = scheduleMap.get(dow);
-    if (avail) {
+    const avail = overrideMap.get(dateKey(current)) ?? scheduleMap.get(dow);
+    if (avail?.isActive) {
       const [sh, sm] = avail.start.split(":").map(Number);
       const [eh, em] = avail.end.split(":").map(Number);
 
@@ -77,14 +140,30 @@ export async function getAvailableSlots(params: {
       const dayEnd = new Date(current);
       dayEnd.setHours(eh, em, 0, 0);
 
+      const unavailableRanges = avail.unavailableBlocks.map((block) => {
+        const [blockStartHour, blockStartMinute] = block.start_time.split(":").map(Number);
+        const [blockEndHour, blockEndMinute] = block.end_time.split(":").map(Number);
+        const blockStart = new Date(current);
+        blockStart.setHours(blockStartHour, blockStartMinute, 0, 0);
+        const blockEnd = new Date(current);
+        blockEnd.setHours(blockEndHour, blockEndMinute, 0, 0);
+
+        return {
+          start: blockStart.getTime(),
+          end: blockEnd.getTime(),
+        };
+      });
+
       let slotStart = new Date(dayStart);
       while (slotStart.getTime() + durationMins * 60000 <= dayEnd.getTime()) {
         const slotEnd = new Date(slotStart.getTime() + durationMins * 60000);
 
         // Skip past slots
         if (slotEnd.getTime() > now.getTime()) {
-          const hasConflict = bookedRanges.some(
-            (b) => slotStart.getTime() < b.end && slotEnd.getTime() > b.start
+          const slotStartMs = slotStart.getTime();
+          const slotEndMs = slotEnd.getTime();
+          const hasConflict = [...bookedRanges, ...unavailableRanges].some(
+            (range) => slotStartMs < range.end && slotEndMs > range.start
           );
 
           if (!hasConflict) {

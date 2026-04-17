@@ -92,8 +92,20 @@ export async function POST(
     const businessId = business.id as string;
     const guest = await verifyGuestSession(token, businessId);
 
-    // Fetch current conversation
-    const { data: conv } = await supabase
+    // Verify the booking belongs to this business and guest
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("id, guest_email, services(name)")
+      .eq("id", body.booking_id)
+      .eq("business_id", businessId)
+      .maybeSingle();
+
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
+
+    // Fetch or create conversation (handles Stripe path where row may not exist yet)
+    let { data: conv } = await supabase
       .from("booking_conversations")
       .select("id, messages")
       .eq("booking_id", body.booking_id)
@@ -101,7 +113,16 @@ export async function POST(
       .maybeSingle();
 
     if (!conv) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      const { data: newConv, error: insertErr } = await supabase
+        .from("booking_conversations")
+        .insert({ booking_id: body.booking_id, business_id: businessId, messages: [] })
+        .select("id, messages")
+        .single();
+
+      if (insertErr || !newConv) {
+        return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 });
+      }
+      conv = newConv;
     }
 
     const existing = (conv.messages as ConvMessage[]) ?? [];
@@ -125,7 +146,7 @@ export async function POST(
       messages: [
         {
           role: "system",
-          content: `You are a helpful assistant for ${business.name}${business.owner_name ? ` with ${business.owner_name}` : ""}. A customer named ${guest.name} has a booking and is messaging post-booking. Respond warmly and helpfully. Keep replies brief (1-3 sentences). If they have questions you can't answer (e.g. specific pricing changes, rescheduling), tell them to contact the business directly.`,
+          content: `You are a helpful assistant for ${business.name}${business.owner_name ? ` with ${business.owner_name}` : ""}. A customer named ${guest.name} has a booking and is messaging post-booking. Respond warmly and helpfully. Keep replies brief (1-3 sentences). If they ask to change or cancel the appointment, tell them they can use the Reschedule or Cancel controls on this booking page, and ask any clarifying questions that would help the business.`,
         },
         ...recentHistory,
         { role: "user", content: body.message.trim() },
