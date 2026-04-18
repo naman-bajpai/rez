@@ -16,9 +16,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   no_pages: "No Facebook Pages found on your account. You need a Facebook Page connected to an Instagram Business or Creator account.",
   no_ig_account: "None of your Facebook Pages have an Instagram Business Account connected. Go to Instagram → Settings → Account → Switch to Professional Account, then link it to your Facebook Page.",
   token_exchange_failed: "Something went wrong during login. Please try again.",
+  token_extend_failed: "Could not extend your Instagram session. Please try again.",
+  pages_fetch_failed: "Couldn't read your Facebook Pages. Re-authorise and try again.",
   state_mismatch: "Session expired. Please try connecting again.",
+  invalid_state: "Invalid OAuth state. Please try connecting again.",
+  missing_params: "Instagram returned an incomplete response. Please try again.",
   server_misconfigured: "Server configuration error. Contact support.",
   db_failed: "Failed to save your connection. Please try again.",
+  not_signed_in: "Please sign in first, then connect Instagram.",
+  no_business: "No business is linked to your account yet — finish onboarding first.",
+  connect_failed: "Could not start the Instagram connection. Please try again.",
 };
 
 export function InstagramConnect() {

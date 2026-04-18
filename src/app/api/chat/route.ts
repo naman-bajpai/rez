@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     // Resolve business
     const { data: business } = await supabase
       .from("businesses")
-      .select("id, name, timezone")
+      .select("id, name, timezone, ai_context")
       .eq("slug", businessSlug)
       .maybeSingle();
 
@@ -92,18 +92,29 @@ export async function POST(request: Request) {
       day: "numeric",
     });
 
-    const systemPrompt = `You are a friendly booking assistant for ${business.name}.
-Help the user book an appointment.
+    const aiContext = (business.ai_context as string | null) ?? null;
 
-Services available:
+    const systemPrompt = `You are a friendly booking assistant for ${business.name as string}.
+
+## BUSINESS KNOWLEDGE (your single source of truth)
+${aiContext?.trim() || "No custom business context has been configured yet."}
+
+## SERVICES AVAILABLE (live — always current)
 ${servicesList || "No services currently available."}
 
-Rules:
+## BOOKING RULES
 - Keep replies short (2-3 sentences max)
 - Always call check_availability before suggesting specific times — never invent slots
 - Ask for the client's name and email before creating a booking
 - After creating a booking, confirm the details clearly with date and time
-- Today is ${today}`;
+- Today is ${today}
+
+## ANTI-HALLUCINATION RULES (highest priority — never break these)
+- You ONLY know what is in BUSINESS KNOWLEDGE and SERVICES AVAILABLE above
+- If asked about a service, price, policy, or detail NOT listed above, say: "I don't have that detail — please reach out to ${business.name as string} directly for that one"
+- Never invent prices, durations, policies, or availability
+- Never describe a service in more detail than what is listed
+- If the request is ambiguous, ask a clarifying question rather than guessing`;
 
     const openai = getOpenAI();
 

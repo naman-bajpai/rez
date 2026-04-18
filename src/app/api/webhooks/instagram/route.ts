@@ -214,8 +214,9 @@ async function runIgAiLoop(params: {
   igUserId: string;
   inboundText: string;
   history: StoredMessage[];
+  aiContext: string | null;
 }): Promise<string> {
-  const { businessId, businessSlug, services, businessName, igUserId, inboundText, history } = params;
+  const { businessId, businessSlug, services, businessName, igUserId, inboundText, history, aiContext } = params;
   const supabase = createServiceRoleClient();
   const openai = getOpenAI();
 
@@ -229,17 +230,27 @@ async function runIgAiLoop(params: {
 
   const systemPrompt = `You are Rez, the autonomous booking assistant for ${businessName}. You live inside Instagram DMs.
 
-Services:
+## BUSINESS KNOWLEDGE (your single source of truth)
+${aiContext?.trim() || "No custom business context has been configured yet."}
+
+## SERVICES MENU (live — always current)
 ${servicesList || "No services listed."}
 
-Rules:
+## BOOKING RULES
 - Keep replies SHORT — 1-3 sentences, conversational, like a real DM
 - Always call check_availability before suggesting specific times
 - Ask for the client's name before creating a booking
 - After booking, give them the Stripe payment link to secure the slot
 - If a slot is taken, suggest the next 3 closest openings
 - Distinguish "just asking" from "ready to book" — for ready clients, prioritise getting them booked fast
-- Today is ${today}`;
+- Today is ${today}
+
+## ANTI-HALLUCINATION RULES (highest priority — never break these)
+- You ONLY know what is in BUSINESS KNOWLEDGE and SERVICES MENU above
+- If asked about a service, price, policy, or detail NOT listed above, say: "I don't have that info on hand — I'll have ${businessName} follow up with you directly 🙏"
+- Never invent prices, durations, policies, or availability
+- Never describe a service in more detail than what is listed
+- If a client's request is unclear or doesn't match a listed service, ask a clarifying question rather than guessing`;
 
   const runMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
     { role: "system", content: systemPrompt },
@@ -419,7 +430,7 @@ export async function POST(request: Request) {
         // Look up which Rez business owns this page (include page token for sending)
         const { data: business } = await supabase
           .from("businesses")
-          .select("id, name, slug, ig_page_access_token")
+          .select("id, name, slug, ig_page_access_token, ai_context")
           .eq("ig_page_id", pageId)
           .maybeSingle();
 
@@ -473,6 +484,7 @@ export async function POST(request: Request) {
           igUserId,
           inboundText: userContent,
           history: thread.messages,
+          aiContext: (business.ai_context as string | null) ?? null,
         });
 
         // Save updated history (keep last 20 turns to avoid token bloat)

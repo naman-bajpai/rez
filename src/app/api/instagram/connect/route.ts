@@ -2,6 +2,9 @@
  * GET /api/instagram/connect
  * Initiates Meta OAuth — redirects the authenticated business owner to Facebook Login.
  * After approval, Meta redirects to /api/instagram/callback.
+ *
+ * On any failure we redirect back to /dashboard/settings with ?ig_error=…
+ * (instead of returning JSON) so the user sees a friendly banner.
  */
 
 import { NextResponse } from "next/server";
@@ -9,27 +12,30 @@ import { cookies } from "next/headers";
 import { withBusiness } from "@/lib/server/auth";
 
 export async function GET(request: Request) {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const settingsUrl = `${appUrl}/dashboard/settings`;
+  const fail = (code: string) =>
+    NextResponse.redirect(`${settingsUrl}?ig_error=${code}`);
+
   try {
     return await withBusiness(request, async ({ businessId }) => {
       const appId = process.env.META_APP_ID;
-      if (!appId) {
-        return NextResponse.json({ error: "META_APP_ID not configured" }, { status: 500 });
-      }
+      if (!appId) return fail("server_misconfigured");
 
       const nonce = crypto.randomUUID();
       const state = `${businessId}.${nonce}`;
-
-      const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
       const redirectUri = `${appUrl}/api/instagram/callback`;
 
       const params = new URLSearchParams({
         client_id: appId,
         redirect_uri: redirectUri,
         scope: [
+          "instagram_basic",
           "instagram_manage_messages",
-          "pages_messaging",
           "pages_show_list",
           "pages_read_engagement",
+          "pages_manage_metadata",
+          "pages_messaging",
         ].join(","),
         response_type: "code",
         state,
@@ -49,7 +55,10 @@ export async function GET(request: Request) {
       );
     });
   } catch (err) {
-    const status = (err as { status?: number }).status ?? 500;
-    return NextResponse.json({ error: (err as Error).message }, { status });
+    const status = (err as { status?: number }).status;
+    if (status === 401) return fail("not_signed_in");
+    if (status === 403) return fail("no_business");
+    console.error("[/api/instagram/connect]", err);
+    return fail("connect_failed");
   }
 }

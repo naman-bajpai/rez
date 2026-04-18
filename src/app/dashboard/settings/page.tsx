@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { InstagramConnect } from "@/components/dashboard/InstagramConnect";
 import { BookingModeSelector } from "@/components/dashboard/BookingModeSelector";
+import { BusinessContextEditor } from "@/components/dashboard/BusinessContextEditor";
 
 export default function SettingsPage() {
   return (
@@ -19,6 +20,13 @@ export default function SettingsPage() {
           Booking
         </h2>
         <BookingModeSelector />
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--dash-muted)" }}>
+          AI agent
+        </h2>
+        <BusinessContextEditor />
       </div>
 
       <div className="space-y-4">
