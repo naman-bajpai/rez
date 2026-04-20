@@ -14,6 +14,7 @@ import { createServiceRoleClient } from "@/lib/server/supabase";
 import { getOpenAI } from "@/lib/server/openai";
 import { checkAvailability, createBooking } from "@/lib/server/booking-engine";
 import { sendInstagramDm, fetchInstagramMediaUrl } from "@/lib/server/notification-service";
+import { trackAIUsage } from "@/lib/server/track-ai-usage";
 import type OpenAI from "openai";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -94,7 +95,7 @@ function todayPlusDays(n: number): string {
 async function analyseInspoPhoto(
   imageUrl: string,
   services: { id: string; name: string; price: number; duration_mins: number }[]
-): Promise<{ text: string; matchedServiceId: string | null }> {
+): Promise<{ text: string; matchedServiceId: string | null; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } | null }> {
   const openai = getOpenAI();
 
   const serviceMenu = services
@@ -151,7 +152,7 @@ Return ONLY the conversational response plus the matched service id in JSON on t
     }
   }
 
-  return { text: textLines.join("\n").trim(), matchedServiceId };
+  return { text: textLines.join("\n").trim(), matchedServiceId, usage: completion.usage ?? null };
 }
 
 // ─── Conversation state via Supabase (ig_threads table, created on demand) ────
@@ -267,6 +268,8 @@ ${servicesList || "No services listed."}
       tools: TOOLS,
       tool_choice: "auto",
     });
+
+    trackAIUsage({ businessId, model: "gpt-4o", endpoint: "instagram_dm", usage: completion.usage });
 
     const choice = completion.choices[0];
     const msg = choice.message;
@@ -463,6 +466,7 @@ export async function POST(request: Request) {
           const imageUrl = imageAttachment.payload.url;
           try {
             const vip = await analyseInspoPhoto(imageUrl, svcList);
+            trackAIUsage({ businessId, model: "gpt-4o", endpoint: "instagram_dm", usage: vip.usage });
             // Prepend VIP analysis to user content so the main loop has context
             userContent = vip.text
               ? `[Client sent an inspo photo — Rez analysis: ${vip.text}] ${userContent}`.trim()

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { InstagramConnect } from "@/components/dashboard/InstagramConnect";
 import { BookingModeSelector } from "@/components/dashboard/BookingModeSelector";
 import { BusinessContextEditor } from "@/components/dashboard/BusinessContextEditor";
+import { AIUsageStats } from "@/components/dashboard/AIUsageStats";
 
 export default function SettingsPage() {
   return (
@@ -37,6 +38,13 @@ export default function SettingsPage() {
         <Suspense>
           <InstagramConnect />
         </Suspense>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--dash-muted)" }}>
+          AI usage
+        </h2>
+        <AIUsageStats />
       </div>
     </div>
   );

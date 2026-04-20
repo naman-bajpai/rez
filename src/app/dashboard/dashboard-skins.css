@@ -4,9 +4,9 @@
    ───────────────────────────────────────────────────────────────────────── */
 
 .dash-root {
-  /* Typography — Jost, light weights throughout */
+  /* Typography — Jost, medium-readable defaults */
   font-family: var(--font-jost, 'Jost', ui-sans-serif, system-ui, -apple-system, sans-serif);
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 0.01em;
 
   /* Page */
@@ -65,22 +65,22 @@
 }
 
 /* ─── Jost weight scale ─────────────────────────────────────────────────── */
-/* Default: 300 (light). Use 400 for active/emphasis, 500 sparingly for headings. */
+/* Default: 400 (regular). Use 500 for medium emphasis, 600+ for strong hierarchy. */
 
-.dash-root .dash-h1          { font-weight: 400; }
-.dash-root .dash-eyebrow     { font-weight: 400; }
-.dash-root .dash-subtitle    { font-weight: 300; }
+.dash-root .dash-h1          { font-weight: 500; }
+.dash-root .dash-eyebrow     { font-weight: 415; }
+.dash-root .dash-subtitle    { font-weight: 350; }
 
 /* Override Tailwind font-semibold / font-bold inside dash-root */
 .dash-root .font-semibold,
-.dash-root .font-bold         { font-weight: 400; }
-.dash-root .font-medium       { font-weight: 300; }
-.dash-root .text-sm           { font-weight: 300; }
-.dash-root .text-xs           { font-weight: 300; }
+.dash-root .font-bold         { font-weight: 600; }
+.dash-root .font-medium       { font-weight: 400; }
+.dash-root .text-sm           { font-weight: 350; }
+.dash-root .text-xs           { font-weight: 500; }
 
 /* Nav active state needs a touch more weight */
 .dash-root [data-active-nav="true"],
-.dash-root .dash-nav-active   { font-weight: 400; }
+.dash-root .dash-nav-active   { font-weight: 500; }
 
 /* ─── Shell ──────────────────────────────────────────────────────────────── */
 

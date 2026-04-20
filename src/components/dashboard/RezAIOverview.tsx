@@ -13,6 +13,8 @@ import {
   Inbox,
   Scissors,
   MessageCircle,
+  Users,
+  AlertTriangle,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -31,6 +33,11 @@ type Analytics = {
   total_bookings: number;
   business: { name: string; slug: string } | null;
   upcoming: UpcomingBooking[];
+};
+
+type CrmSnapshot = {
+  counts: { all: number; vip: number; at_risk: number; lapsed: number; new: number; active: number };
+  retentionRate: number;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -136,14 +143,18 @@ function QuickLink({ href, icon: Icon, label, sub }: { href: string; icon: React
 
 export function RezAIOverview() {
   const [data, setData] = useState<Analytics | null>(null);
+  const [crm, setCrm] = useState<CrmSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const ctrl = new AbortController();
-    fetch("/api/analytics?period=30d", { signal: ctrl.signal })
-      .then((r) => r.json())
-      .then((d: Analytics & { error?: string }) => {
-        if (!d.error) setData(d);
+    Promise.all([
+      fetch("/api/analytics?period=30d", { signal: ctrl.signal }).then((r) => r.json()),
+      fetch("/api/crm/segments", { signal: ctrl.signal }).then((r) => r.json()),
+    ])
+      .then(([analytics, crmData]: [Analytics & { error?: string }, CrmSnapshot & { error?: string }]) => {
+        if (!analytics.error) setData(analytics);
+        if (!crmData.error) setCrm(crmData);
       })
       .catch(() => {})
       .finally(() => {
@@ -236,6 +247,38 @@ export function RezAIOverview() {
           sub="7d schedule"
           value={loading ? "—" : String(upcoming.length)}
           icon={CalendarDays}
+          loading={loading}
+        />
+      </div>
+
+      {/* ── CRM snapshot ────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard
+          label="Total Clients"
+          sub="all time"
+          value={loading ? "—" : String(crm?.counts.all ?? 0)}
+          icon={Users}
+          loading={loading}
+        />
+        <StatCard
+          label="VIP"
+          sub="high-value"
+          value={loading ? "—" : String(crm?.counts.vip ?? 0)}
+          icon={TrendingUp}
+          loading={loading}
+        />
+        <StatCard
+          label="At Risk"
+          sub="may churn"
+          value={loading ? "—" : String(crm?.counts.at_risk ?? 0)}
+          icon={AlertTriangle}
+          loading={loading}
+        />
+        <StatCard
+          label="Retention"
+          sub="active rate"
+          value={loading ? "—" : `${crm?.retentionRate ?? 0}%`}
+          icon={CheckCircle2}
           loading={loading}
         />
       </div>
@@ -377,7 +420,7 @@ export function RezAIOverview() {
             </div>
             <div className="space-y-3">
               <QuickLink
-                href="/dashboard/bookings"
+                href="/dashboard/inbox"
                 icon={Inbox}
                 label="DM Inbox"
                 sub="AI Conversations"
@@ -387,6 +430,12 @@ export function RezAIOverview() {
                 icon={CalendarDays}
                 label="Bookings"
                 sub="Management"
+              />
+              <QuickLink
+                href="/dashboard/clients"
+                icon={Users}
+                label="Clients"
+                sub="CRM & Segments"
               />
               <QuickLink
                 href="/dashboard/services"
