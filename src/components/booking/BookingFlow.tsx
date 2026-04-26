@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import {
   ChevronLeft,
   ChevronRight,
@@ -331,10 +332,24 @@ const BK_STYLES = `
     box-shadow: 0 10px 30px -20px rgba(124,58,237,0.45);
   }
 
-  /* Wordmark */
-  .bk-logo {
-    font-family: 'Fraunces', serif; font-style: italic; font-weight: 300;
-    font-size: 17px; color: var(--c-muted); letter-spacing: -0.01em;
+  /* Logo */
+  .bk-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--c-border);
+    background: #FFFFFF;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .bk-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   /* Manage link */
@@ -927,7 +942,16 @@ export function BookingFlow({
 
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <span className="bk-logo">rez</span>
+        <span className="bk-logo-wrap" aria-label="Rez">
+          <Image
+            src="/images/logo_transparent.png"
+            alt="ReZ logo"
+            width={72}
+            height={72}
+            className="bk-logo-img"
+            priority
+          />
+        </span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {guestSession && (
             <span style={{ fontSize: 12, color: "var(--c-sub)", display: "flex", alignItems: "center", gap: 4 }}>

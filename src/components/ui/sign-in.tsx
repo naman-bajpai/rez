@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 
 const GoogleIcon = () => (
@@ -34,8 +35,11 @@ export interface Testimonial {
 interface SignInPageProps {
   title?: React.ReactNode;
   description?: React.ReactNode;
+  eyebrow?: React.ReactNode;
   heroImageSrc?: string;
+  heroImageAlt?: string;
   testimonials?: Testimonial[];
+  highlights?: Array<{ label: string; value: string }>;
   onSignIn?: (event: React.FormEvent<HTMLFormElement>) => void;
   onGoogleSignIn?: () => void;
   onResetPassword?: () => void;
@@ -44,29 +48,22 @@ interface SignInPageProps {
 }
 
 const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-2xl border border-[var(--dash-border,#E4E4E7)] bg-white/90 transition-colors focus-within:border-[var(--dash-accent,#7C3AED)] focus-within:bg-[var(--dash-accent-soft,#F5F3FF)]">
+  <div className="rounded-lg border border-[#d9dfdb] bg-white transition-colors focus-within:border-[#2f6f61] focus-within:ring-4 focus-within:ring-[#2f6f61]/10">
     {children}
   </div>
 );
 
-const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial; delay: string }) => (
-  <div
-    className={`animate-testimonial ${delay} flex w-64 items-start gap-3 rounded-3xl border border-[var(--dash-border,#E4E4E7)] bg-white/90 p-5 shadow-[var(--dash-shadow-card,0_1px_3px_rgba(0,0,0,0.06))]`}
-  >
-    <img src={testimonial.avatarSrc} className="h-10 w-10 rounded-2xl object-cover" alt={testimonial.name} />
-    <div className="text-sm leading-snug">
-      <p className="flex items-center gap-1 font-[400] text-[var(--dash-text,#18181B)]">{testimonial.name}</p>
-      <p className="text-[var(--dash-muted,#71717A)]">{testimonial.handle}</p>
-      <p className="mt-1 text-[var(--dash-text-secondary,#3F3F46)]">{testimonial.text}</p>
-    </div>
-  </div>
-);
+const defaultHighlights = [
+  { label: "DMs handled", value: "184" },
+  { label: "Deposits held", value: "$3.8k" },
+  { label: "Open slots", value: "17" },
+];
 
 export const SignInPage: React.FC<SignInPageProps> = ({
-  title = <span className="font-[400] tracking-tight text-[var(--dash-text,#18181B)]">Welcome</span>,
+  title = <span className="font-[400] text-[#17211d]">Welcome</span>,
   description = "",
-  heroImageSrc,
-  testimonials = [],
+  eyebrow = "ReZ booking desk",
+  highlights = defaultHighlights,
   onSignIn,
   onGoogleSignIn,
   onResetPassword,
@@ -76,137 +73,141 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="dash-root flex h-[100dvh] w-full overflow-hidden bg-[var(--dash-page-bg,#F8F8FC)] font-sans md:flex-row">
-      <section className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-5 md:p-8">
-        <div className="w-full max-w-md py-2">
-          <div className="flex flex-col gap-5">
-            <h1 className="animate-element animate-delay-100 text-4xl leading-tight md:text-5xl">{title}</h1>
-            <p className="animate-element animate-delay-200 text-[var(--dash-muted,#71717A)]">{description}</p>
+    <main className="dash-root min-h-[100dvh] bg-[#f5f7f6] text-[#17211d]">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-5 py-5 sm:px-8 lg:px-10">
+        <section className="flex min-h-[100dvh] flex-col">
+          <nav className="flex items-center justify-between gap-4">
+            <Link href="/" className="text-base font-medium text-[#17211d] transition hover:text-[#2f6f61]">
+              ReZ
+            </Link>
+            <Link
+              href="/"
+              className="rounded-lg border border-[#d9dfdb] bg-white px-3 py-2 text-sm text-[#53615b] shadow-[0_1px_0_rgba(18,32,27,0.04)] transition hover:border-[#b9c5bf] hover:text-[#17211d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
+            >
+              Back home
+            </Link>
+          </nav>
 
-            {children ? (
-              <div className="animate-element animate-delay-300">{children}</div>
-            ) : (
-              <>
-                <form className="space-y-5" onSubmit={onSignIn}>
-                  <div className="animate-element animate-delay-300">
-                    <label className="text-sm font-[400] text-[var(--dash-muted,#71717A)]">Email Address</label>
-                    <GlassInputWrapper>
-                      <input
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email address"
-                        className="w-full rounded-2xl bg-transparent p-4 text-sm text-[var(--dash-text,#18181B)] focus:outline-none"
-                      />
-                    </GlassInputWrapper>
-                  </div>
+          <div className="flex flex-1 items-center justify-center py-10 lg:py-14">
+            <div className="w-full max-w-[38rem]">
+              <div className="space-y-4 text-center">
+                {eyebrow ? (
+                  <p className="animate-element animate-delay-100 text-sm font-medium text-[#2f6f61]">{eyebrow}</p>
+                ) : null}
+                {title ? (
+                  <h1 className="animate-element animate-delay-200 mx-auto max-w-[16ch] text-4xl font-[400] leading-[1.05] text-[#17211d] text-balance sm:text-5xl lg:text-6xl">
+                    {title}
+                  </h1>
+                ) : null}
+                {description ? (
+                  <p className="animate-element animate-delay-300 mx-auto max-w-[34rem] text-base leading-7 text-[#5c6862]">
+                    {description}
+                  </p>
+                ) : null}
+              </div>
 
-                  <div className="animate-element animate-delay-400">
-                    <label className="text-sm font-[400] text-[var(--dash-muted,#71717A)]">Password</label>
-                    <GlassInputWrapper>
-                      <div className="relative">
+              {children ? (
+                <div className="animate-element animate-delay-400 mx-auto mt-8 w-full max-w-[31rem]">{children}</div>
+              ) : (
+                <div className="animate-element animate-delay-400 mx-auto mt-8 w-full max-w-[31rem] rounded-lg border border-[#d9dfdb] bg-white p-5 shadow-[0_24px_80px_-52px_rgba(8,28,22,0.48)] sm:p-6">
+                  <form className="space-y-5" onSubmit={onSignIn}>
+                    <div>
+                      <label className="text-sm font-[400] text-[#53615b]">Email address</label>
+                      <GlassInputWrapper>
                         <input
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your password"
-                          className="w-full rounded-2xl bg-transparent p-4 pr-12 text-sm text-[var(--dash-text,#18181B)] focus:outline-none"
+                          name="email"
+                          type="email"
+                          placeholder="you@business.com"
+                          className="w-full rounded-lg bg-transparent p-4 text-sm text-[#17211d] outline-none placeholder:text-[#9aa49f]"
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-3 flex items-center"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5 text-[var(--dash-muted,#71717A)] transition-colors hover:text-[var(--dash-text,#18181B)]" />
-                          ) : (
-                            <Eye className="h-5 w-5 text-[var(--dash-muted,#71717A)] transition-colors hover:text-[var(--dash-text,#18181B)]" />
-                          )}
-                        </button>
-                      </div>
-                    </GlassInputWrapper>
-                  </div>
+                      </GlassInputWrapper>
+                    </div>
 
-                  <div className="animate-element animate-delay-500 flex items-center justify-between text-sm">
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input type="checkbox" name="rememberMe" className="custom-checkbox" />
-                      <span className="text-[var(--dash-text-secondary,#3F3F46)]">Keep me signed in</span>
-                    </label>
+                    <div>
+                      <label className="text-sm font-[400] text-[#53615b]">Password</label>
+                      <GlassInputWrapper>
+                        <div className="relative">
+                          <input
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter your password"
+                            className="w-full rounded-lg bg-transparent p-4 pr-12 text-sm text-[#17211d] outline-none placeholder:text-[#9aa49f]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-2 grid w-9 place-items-center rounded-md text-[#66716c] transition hover:bg-[#eef3f0] hover:text-[#17211d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </GlassInputWrapper>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input type="checkbox" name="rememberMe" className="custom-checkbox" />
+                        <span className="text-[#3e4944]">Keep me signed in</span>
+                      </label>
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onResetPassword?.();
+                        }}
+                        className="font-medium text-[#2f6f61] transition hover:text-[#244f47] hover:underline"
+                      >
+                        Reset password
+                      </a>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full rounded-lg bg-[#17211d] py-4 font-medium text-white shadow-[0_16px_36px_-24px_rgba(8,28,22,0.7)] transition hover:bg-[#244f47] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
+                    >
+                      Sign in
+                    </button>
+                  </form>
+
+                  <button
+                    onClick={onGoogleSignIn}
+                    className="mt-5 flex w-full items-center justify-center gap-3 rounded-lg border border-[#d9dfdb] bg-white py-4 transition hover:border-[#b9c5bf] hover:bg-[#f6f9f7] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
+                  >
+                    <GoogleIcon />
+                    Continue with Google
+                  </button>
+
+                  <p className="mt-5 text-center text-sm text-[#66716c]">
+                    New to ReZ?{" "}
                     <a
                       href="#"
                       onClick={(e) => {
                         e.preventDefault();
-                        onResetPassword?.();
+                        onCreateAccount?.();
                       }}
-                      className="text-[var(--dash-accent,#7C3AED)] transition-colors hover:underline"
+                      className="font-medium text-[#17211d] underline-offset-4 transition hover:text-[#2f6f61] hover:underline"
                     >
-                      Reset password
+                      Create account
                     </a>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="animate-element animate-delay-600 w-full rounded-2xl bg-[var(--dash-accent,#7C3AED)] py-4 font-[400] text-white transition-colors hover:bg-[var(--dash-accent-hover,#6D28D9)]"
-                  >
-                    Sign In
-                  </button>
-                </form>
-
-                <div className="animate-element animate-delay-700 relative flex items-center justify-center">
-                  <span className="w-full border-t border-[var(--dash-border,#E4E4E7)]" />
-                  <span className="absolute bg-[var(--dash-page-bg,#F8F8FC)] px-4 text-sm text-[var(--dash-muted,#71717A)]">
-                    Or continue with
-                  </span>
-                </div>
-
-                <button
-                  onClick={onGoogleSignIn}
-                  className="animate-element animate-delay-800 flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--dash-border,#E4E4E7)] bg-white py-4 transition-colors hover:bg-[var(--dash-surface-muted,#F4F4F5)]"
-                >
-                  <GoogleIcon />
-                  Continue with Google
-                </button>
-
-                <p className="animate-element animate-delay-900 text-center text-sm text-[var(--dash-muted,#71717A)]">
-                  New to our platform?{" "}
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onCreateAccount?.();
-                    }}
-                    className="text-[var(--dash-accent,#7C3AED)] transition-colors hover:underline"
-                  >
-                    Create Account
-                  </a>
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {heroImageSrc && (
-        <section className="relative hidden min-h-0 flex-1 overflow-hidden p-4 md:block">
-          <div
-            className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl border border-[var(--dash-border,#E4E4E7)] bg-cover bg-center shadow-[var(--dash-shadow-card,0_1px_3px_rgba(0,0,0,0.06))]"
-            style={{ backgroundImage: `url(${heroImageSrc})` }}
-          />
-          {testimonials.length > 0 && (
-            <div className="absolute bottom-8 left-1/2 flex w-full -translate-x-1/2 justify-center gap-4 px-8">
-              <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
-              {testimonials[1] && (
-                <div className="hidden xl:flex">
-                  <TestimonialCard testimonial={testimonials[1]} delay="animate-delay-1200" />
+                  </p>
                 </div>
               )}
-              {testimonials[2] && (
-                <div className="hidden 2xl:flex">
-                  <TestimonialCard testimonial={testimonials[2]} delay="animate-delay-1400" />
-                </div>
-              )}
+
+              {highlights.length > 0 ? (
+                <dl className="animate-element animate-delay-500 mx-auto mt-8 grid w-full max-w-[31rem] grid-cols-3 gap-2">
+                  {highlights.map((item) => (
+                    <div key={item.label} className="rounded-lg border border-[#d9dfdb] bg-white/70 px-3 py-3">
+                      <dt className="text-xs leading-4 text-[#66716c]">{item.label}</dt>
+                      <dd className="mt-1 font-medium tabular-nums text-[#17211d]">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
             </div>
-          )}
+          </div>
         </section>
-      )}
-    </div>
+      </div>
+    </main>
   );
 };

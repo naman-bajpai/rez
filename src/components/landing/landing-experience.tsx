@@ -36,7 +36,7 @@ export function LandingExperience() {
           <Link href="/" className="flex items-center gap-3" aria-label="Rez home">
             <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-[oklch(0.78_0.045_156)] bg-[oklch(0.995_0.008_156)]">
               <Image
-                src="/images/logo.png"
+                src="/images/logo_transparent.png"
                 alt=""
                 width={80}
                 height={80}

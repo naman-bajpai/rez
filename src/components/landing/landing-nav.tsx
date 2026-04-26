@@ -27,7 +27,7 @@ export function LandingNav() {
         <Link href="/" className="flex items-center gap-3 group">
           <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 transition-transform group-hover:scale-105">
             <Image
-              src="/images/logo.png"
+              src="/images/logo_transparent.png"
               alt="ReZ Logo"
               width={80}
               height={80}

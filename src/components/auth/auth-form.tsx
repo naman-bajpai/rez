@@ -79,15 +79,15 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const busy = pending || googlePending;
 
   return (
-    <div className="mt-8 grid gap-5">
+    <div className="mt-7 grid gap-5">
       <button
         type="button"
         onClick={continueWithGoogle}
         disabled={busy}
-        className="group flex h-11 items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 shadow-[0_1px_0_rgba(39,39,42,0.04)] transition hover:border-zinc-300 hover:bg-zinc-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+        className="group flex h-12 items-center justify-center gap-3 rounded-lg border border-[#d9dfdb] bg-white px-5 text-sm font-medium text-[#17211d] shadow-[0_1px_0_rgba(18,32,27,0.04)] transition hover:border-[#b9c5bf] hover:bg-[#f6f9f7] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
       >
         {googlePending ? (
-          <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+          <Loader2 className="h-4 w-4 animate-spin text-[#66716c]" />
         ) : (
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
             <path
@@ -108,47 +108,47 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             />
           </svg>
         )}
-        {googlePending ? "Opening Google…" : "Continue with Google"}
+        {googlePending ? "Opening Google..." : "Continue with Google"}
       </button>
 
-      <div className="flex items-center gap-3 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-400">
-        <span className="h-px flex-1 bg-zinc-200" />
-        Or email
-        <span className="h-px flex-1 bg-zinc-200" />
+      <div className="flex items-center gap-3 text-xs font-medium text-[#7b8781]">
+        <span className="h-px flex-1 bg-[#d9dfdb]" />
+        Continue with email
+        <span className="h-px flex-1 bg-[#d9dfdb]" />
       </div>
 
       <form onSubmit={onSubmit} method="post" className="grid gap-4">
         {isSignup ? (
-          <label className="grid gap-1.5 text-[13px] font-medium text-zinc-800">
+          <label className="grid gap-1.5 text-[13px] font-medium text-[#3e4944]">
             Name
             <input
               name="name"
               type="text"
               autoComplete="name"
               required
-              className="h-11 rounded-lg border border-zinc-200 bg-white px-3.5 text-[15px] text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5"
+              className="h-12 rounded-lg border border-[#d9dfdb] bg-white px-3.5 text-[15px] text-[#17211d] outline-none transition placeholder:text-[#9aa49f] focus:border-[#2f6f61] focus:ring-4 focus:ring-[#2f6f61]/10"
               placeholder="Alex Morgan"
             />
           </label>
         ) : null}
 
-        <label className="grid gap-1.5 text-[13px] font-medium text-zinc-800">
+        <label className="grid gap-1.5 text-[13px] font-medium text-[#3e4944]">
           Email
           <input
             name="email"
             type="email"
             autoComplete="email"
             required
-            className="h-11 rounded-lg border border-zinc-200 bg-white px-3.5 text-[15px] text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5"
+            className="h-12 rounded-lg border border-[#d9dfdb] bg-white px-3.5 text-[15px] text-[#17211d] outline-none transition placeholder:text-[#9aa49f] focus:border-[#2f6f61] focus:ring-4 focus:ring-[#2f6f61]/10"
             placeholder="you@business.com"
           />
         </label>
 
-        <label className="grid gap-1.5 text-[13px] font-medium text-zinc-800">
+        <label className="grid gap-1.5 text-[13px] font-medium text-[#3e4944]">
           <span className="flex items-center justify-between">
             Password
             {isSignup ? (
-              <span className="text-[11px] font-normal text-zinc-500">8+ characters</span>
+              <span className="text-xs font-normal text-[#66716c]">8+ characters</span>
             ) : null}
           </span>
           <span className="relative">
@@ -158,14 +158,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               autoComplete={isSignup ? "new-password" : "current-password"}
               required
               minLength={8}
-              className="h-11 w-full rounded-lg border border-zinc-200 bg-white px-3.5 pr-11 text-[15px] text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5"
+              className="h-12 w-full rounded-lg border border-[#d9dfdb] bg-white px-3.5 pr-11 text-[15px] text-[#17211d] outline-none transition placeholder:text-[#9aa49f] focus:border-[#2f6f61] focus:ring-4 focus:ring-[#2f6f61]/10"
               placeholder="••••••••"
             />
             <button
               type="button"
               onClick={() => setShowPassword((s) => !s)}
-              tabIndex={-1}
-              className="absolute right-1 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-md text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700"
+              className="absolute right-1 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-md text-[#66716c] transition hover:bg-[#eef3f0] hover:text-[#17211d] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -174,7 +173,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </label>
 
         {error ? (
-          <p className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] leading-5 text-red-700">
+          <p className="rounded-lg border border-[#f3b4ad] bg-[#fff1ef] px-3.5 py-2.5 text-[13px] leading-5 text-[#a33a2f]">
             {error}
           </p>
         ) : null}
@@ -182,17 +181,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         <button
           type="submit"
           disabled={busy}
-          className="mt-1 flex h-11 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-5 text-sm font-semibold text-[#fbfaf7] shadow-[0_8px_24px_-12px_rgba(39,39,42,0.5)] transition hover:bg-zinc-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg bg-[#17211d] px-5 text-sm font-medium text-white shadow-[0_16px_36px_-24px_rgba(8,28,22,0.7)] transition hover:bg-[#244f47] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {pending ? "Working…" : isSignup ? "Create account" : "Log in"}
+          {pending ? "Working..." : isSignup ? "Create account" : "Log in"}
         </button>
 
-        <p className="text-center text-[13px] text-zinc-600">
+        <p className="text-center text-[13px] text-[#66716c]">
           {isSignup ? "Already have an account?" : "New to ReZ?"}{" "}
           <Link
             href={isSignup ? "/login" : "/signup"}
-            className="font-semibold text-zinc-950 underline-offset-4 hover:underline"
+            className="font-medium text-[#17211d] underline-offset-4 transition hover:text-[#2f6f61] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f6f61]"
           >
             {isSignup ? "Log in" : "Create an account"}
           </Link>

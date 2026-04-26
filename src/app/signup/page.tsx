@@ -1,34 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 import { AuthForm } from "@/components/auth/auth-form";
-import { SignInPage, type Testimonial } from "@/components/ui/sign-in";
+import { SignInPage } from "@/components/ui/sign-in";
 import "../dashboard/dashboard-skins.css";
 
 export const dynamic = "force-dynamic";
 
-const testimonials: Testimonial[] = [
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/women/44.jpg",
-    name: "Nia Brooks",
-    handle: "@niastudio",
-    text: "Setup took minutes, and clients started booking from Instagram right away.",
-  },
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/men/49.jpg",
-    name: "Omar Rivera",
-    handle: "@omarfit",
-    text: "The deposit flow made my weekly schedule dramatically more predictable.",
-  },
-  {
-    avatarSrc: "https://randomuser.me/api/portraits/women/63.jpg",
-    name: "Lena Park",
-    handle: "@lenaartistry",
-    text: "Finally, an inbox-first booking setup that feels simple and premium.",
-  },
-];
+export const metadata: Metadata = {
+  title: "Create account | ReZ",
+  description: "Create a ReZ account and start turning client messages into booked appointments.",
+};
 
 export default async function SignupPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -44,27 +29,19 @@ export default async function SignupPage() {
 
   return (
     <SignInPage
-      title={
-        <>
-          Start with one link.
-          <br />
-          <span className="text-[var(--dash-accent)]">Build your booking desk.</span>
-        </>
-      }
-      heroImageSrc="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=2160&q=80"
-      testimonials={testimonials}
+      eyebrow={null}
+      title={null}
+      description={null}
     >
-      <div className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-5 shadow-[var(--dash-shadow-card)] sm:p-6">
+      <div className="rounded-lg border border-[#d9dfdb] bg-white p-5 shadow-[0_24px_80px_-52px_rgba(8,28,22,0.48)] sm:p-6">
         <div className="mb-1 flex items-center justify-between gap-4">
-          <h2 className="text-xl font-[400] tracking-tight text-[var(--dash-text)]">Create account</h2>
-          <Link href="/" className="text-xs uppercase tracking-[0.12em] text-[var(--dash-muted)]">
-            ReZ
+          <h2 className="text-2xl font-[400] text-[#17211d]">Create account</h2>
+          <Link href="/" className="text-sm text-[#66716c] transition hover:text-[#2f6f61]">
+            Home
           </Link>
         </div>
-        <p className="text-xs leading-5 text-[var(--dash-text-secondary)]">Passwords need at least 8 characters.</p>
-        <div className="max-h-[62dvh] overflow-y-auto pr-1">
-          <AuthForm mode="signup" />
-        </div>
+        <p className="text-sm leading-6 text-[#5c6862]">Passwords need at least 8 characters.</p>
+        <AuthForm mode="signup" />
       </div>
     </SignInPage>
   );

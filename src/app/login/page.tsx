@@ -1,16 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { createServiceRoleClient } from "@/lib/server/supabase";
 import { AuthForm } from "@/components/auth/auth-form";
-import { SignInPage, type Testimonial } from "@/components/ui/sign-in";
+import { SignInPage } from "@/components/ui/sign-in";
 import "../dashboard/dashboard-skins.css";
 
 export const dynamic = "force-dynamic";
 
-const testimonials: Testimonial[] = [
-];
+export const metadata: Metadata = {
+  title: "Log in | ReZ",
+  description: "Log in to manage bookings, deposits, clients, and booking links in ReZ.",
+};
 
 export default async function LoginPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -26,27 +29,18 @@ export default async function LoginPage() {
 
   return (
     <SignInPage
-      title={
-        <>
-          Welcome back.
-          <br />
-          <span className="text-[var(--dash-accent)]">Keep your bookings moving.</span>
-        </>
-      }
-      description="Log in to manage appointments, clients, services, and booking links from one workspace."
-      heroImageSrc="https://images.unsplash.com/photo-1642615835477-d303d7dc9ee9?w=2160&q=80"
-      testimonials={testimonials}
+      eyebrow={null}
+      title={null}
+      description={null}
     >
-      <div className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6 shadow-[var(--dash-shadow-card)] sm:p-8">
+      <div className="rounded-lg border border-[#d9dfdb] bg-white p-5 shadow-[0_24px_80px_-52px_rgba(8,28,22,0.48)] sm:p-6">
         <div className="mb-2 flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-[400] tracking-tight text-[var(--dash-text)]">Log in</h2>
-          <Link href="/" className="text-xs uppercase tracking-[0.12em] text-[var(--dash-muted)]">
-            ReZ
+          <h2 className="text-2xl font-[400] text-[#17211d]">Log in</h2>
+          <Link href="/" className="text-sm text-[#66716c] transition hover:text-[#2f6f61]">
+            Home
           </Link>
         </div>
-        <p className="text-sm leading-6 text-[var(--dash-text-secondary)]">
-          Use the email and password connected to your ReZ workspace.
-        </p>
+        <p className="text-sm leading-6 text-[#5c6862]">Use the email connected to your ReZ workspace.</p>
         <AuthForm mode="login" />
       </div>
     </SignInPage>

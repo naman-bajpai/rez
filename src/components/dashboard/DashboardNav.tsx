@@ -88,7 +88,7 @@ export function DashboardNav() {
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
             <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-xl ring-1 ring-[var(--dash-border-strong)]">
               <Image
-                src="/images/logo.png"
+                src="/images/logo_transparent.png"
                 alt=""
                 width={80}
                 height={80}

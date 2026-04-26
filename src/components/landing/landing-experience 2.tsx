@@ -25,7 +25,7 @@ export function LandingExperience() {
       <div className="flex items-center gap-3">
         <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-white">
           <Image
-            src="/images/logo.png"
+            src="/images/logo_transparent.png"
             alt="ReZ"
             width={80}
             height={80}
